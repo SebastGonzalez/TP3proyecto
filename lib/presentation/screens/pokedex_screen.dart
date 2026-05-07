@@ -1,31 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prueba1/monsters/data/monster_repository.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 
-class PokedexScreen extends StatefulWidget {
+class PokedexScreen extends ConsumerWidget {
   const PokedexScreen({super.key});
 
   @override
-  State<PokedexScreen> createState() => _PokedexScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final monstersAsync = ref.watch(monstersProvider);
 
-class _PokedexScreenState extends State<PokedexScreen> {
-  final monsterRepository = MonsterRepository();
-
-  List<Monster> getMonsters() {
-    return monsterRepository.getMonsters();
-  }
-  List<Monster> monsters = [];
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Pokedex Screen'),
       ),
-
-      body: _ListView(monsters: monsterRepository.getMonsters(),),
+      body: monstersAsync.when(
+        loading: () => Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
+        data: (monsters) => _ListView(monsters: monsters),
+      ),
     );
   }
 }
@@ -49,16 +43,16 @@ class _ListView extends StatelessWidget {
 class _ListItem extends StatelessWidget {
   final Monster monster;
 
-  const _ListItem({super.key, required this.monster,});
+  const _ListItem({super.key, required this.monster});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: monster.image,
+        leading: Image.asset(monster.imagePath),
         title: Text(monster.name),
         subtitle: Column(
-          mainAxisAlignment: MainAxisAlignment.start, 
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Tier: ${monster.level}'),
@@ -67,9 +61,7 @@ class _ListItem extends StatelessWidget {
         ),
         trailing: Icon(Icons.arrow_forward_ios),
         onTap: () {
-
           context.push('/details', extra: monster);
-
         },
       ),
     );

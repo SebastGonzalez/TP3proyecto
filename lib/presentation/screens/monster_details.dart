@@ -33,7 +33,7 @@ class _DetailView extends StatelessWidget {
     return Column(
       children: [
         Text('${monster.name}', style: textStyle.headlineLarge),
-        monster.image,
+        Image.asset(monster.imagePath),
         Card(
           child: Column(
             children: [
