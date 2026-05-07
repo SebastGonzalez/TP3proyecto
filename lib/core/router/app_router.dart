@@ -1,0 +1,27 @@
+import 'package:go_router/go_router.dart';
+import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/presentation/screens/gatcha_screen.dart';
+import 'package:prueba1/presentation/screens/home_screen.dart';
+import 'package:prueba1/presentation/screens/login_screen.dart';
+import 'package:prueba1/presentation/screens/monster_details.dart';
+import 'package:prueba1/presentation/screens/my_monster_screen.dart';
+import 'package:prueba1/presentation/screens/pokedex_screen.dart';
+import 'package:prueba1/presentation/screens/profile_screen.dart';
+import 'package:prueba1/presentation/screens/settings_screen.dart';
+import 'package:prueba1/presentation/screens/shop_screen.dart';
+
+final app_router = GoRouter(
+  
+  initialLocation: '/login',
+  routes: [  
+    GoRoute(path: '/login'  ,     builder: (context, state) =>  LoginScreen(),),
+    GoRoute(path: '/home'   ,     builder: (context, state) =>  HomeScreen(),),
+    GoRoute(path: '/details',     builder: (context, state) =>  MonsterDetails(monster: state.extra as Monster),),
+    GoRoute(path: '/settings',    builder: (context, state) =>  SettingsScreen(),),
+    GoRoute(path: '/profile',     builder: (context, state) =>  ProfileScreen(),),
+    GoRoute(path: '/pokedex',     builder: (context, state) =>  PokedexScreen(),),
+    GoRoute(path: '/gatcha',      builder: (context, state) =>  GatchaScreen(),),
+    GoRoute(path: '/mymonsters',  builder: (context, state) =>  MyMonsterScreen(),),
+    GoRoute(path: '/shop',        builder: (context, state) =>  ShopScreen()),
+    ],
+);
