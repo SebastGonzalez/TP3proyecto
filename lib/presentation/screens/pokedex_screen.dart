@@ -49,7 +49,11 @@ class _ListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: Image.asset(monster.imagePath),
+        leading: SizedBox(
+            width: 50,
+            height: 50,
+            child: monster.image,
+          ),
         title: Text(monster.name),
         subtitle: Column(
           mainAxisAlignment: MainAxisAlignment.start,
