@@ -28,9 +28,9 @@ class HomeScreen extends ConsumerWidget {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                ref.read(coinProvider.notifier).state++;
+                ref.read(coinProvider.notifier).state = coins + 1000;
               },
-              child: Text('Increment Coins'),
+              child: Text('Add 1000 Coins'),
             ),
           ],
         ),
@@ -74,12 +74,15 @@ class _MenuDrawer extends ConsumerWidget {
             ],
           ),
         ),
-        footer: ButtonTheme(child:  ElevatedButton(
-          onPressed: () {
-            context.go('/login');
-          },
-          child: Text('Logout'),
-        )),
+        footer: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton(
+            onPressed: () {
+              context.go('/login');
+            },
+            child: const Text('Logout'),
+          ),
+        ),
 
         children: [
           for (var item in items) 

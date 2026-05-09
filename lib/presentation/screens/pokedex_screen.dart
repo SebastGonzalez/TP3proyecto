@@ -63,7 +63,7 @@ class _ListItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Tier: ${monster.level}'),
-            Text('${monster.rarity}'),
+            Text(monster.rarity.label),
           ],
         ),
         trailing: Icon(Icons.arrow_forward_ios),

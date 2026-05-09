@@ -1,0 +1,41 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prueba1/monsters/domain/monster.dart';
+
+/// Una entrada en la colección del jugador: el monstruo capturado y cuántas
+/// veces lo obtuvo (para mostrar duplicados como "x2", "x3", etc.).
+class CapturedEntry {
+  final Monster monster;
+  final int count;
+
+  const CapturedEntry({required this.monster, required this.count});
+
+  CapturedEntry copyWith({Monster? monster, int? count}) => CapturedEntry(
+        monster: monster ?? this.monster,
+        count: count ?? this.count,
+      );
+}
+
+/// Notifier que guarda los monstruos capturados por el jugador en memoria.
+/// Si se cierra la app, la lista se reinicia (persistencia "fake").
+class CapturedMonstersNotifier extends Notifier<List<CapturedEntry>> {
+  @override
+  List<CapturedEntry> build() => const [];
+
+  void add(Monster monster) {
+    final idx = state.indexWhere((e) => e.monster.name == monster.name);
+    if (idx == -1) {
+      state = [...state, CapturedEntry(monster: monster, count: 1)];
+    } else {
+      final updated = [...state];
+      updated[idx] = updated[idx].copyWith(count: updated[idx].count + 1);
+      state = updated;
+    }
+  }
+
+  void clear() => state = const [];
+}
+
+final capturedMonstersProvider =
+    NotifierProvider<CapturedMonstersNotifier, List<CapturedEntry>>(
+  CapturedMonstersNotifier.new,
+);

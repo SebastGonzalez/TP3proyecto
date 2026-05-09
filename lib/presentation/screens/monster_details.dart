@@ -24,18 +24,10 @@ class _DetailView extends StatelessWidget {
 
   const _DetailView({super.key, required this.monster});
 
-  Color _rarityColor(String rarity) {
-    switch (rarity) {
-      case 'Legendary': return const Color(0xFFFF6B00);
-      case 'Rare': return const Color(0xFF6C63FF);
-      default: return const Color(0xFF4CAF50);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final rarityColor = _rarityColor(monster.rarity);
+    final rarityColor = monster.rarity.color;
 
     return SingleChildScrollView(
       child: Column(
@@ -82,7 +74,7 @@ class _DetailView extends StatelessWidget {
                         border: Border.all(color: rarityColor.withOpacity(0.4)),
                       ),
                       child: Text(
-                        monster.rarity.toUpperCase(),
+                        monster.rarity.label.toUpperCase(),
                         style: TextStyle(
                           color: rarityColor,
                           fontSize: 11,

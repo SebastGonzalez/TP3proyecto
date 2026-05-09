@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:prueba1/monsters/domain/rarity.dart';
 
 class Monster {
   String name;
   int level;
-  String rarity;
+  Rarity rarity;
   String description;
   String imagePath;
   int dropWeight;
@@ -19,12 +19,12 @@ class Monster {
 
   factory Monster.fromFirestore(Map<String, dynamic> data) {
     return Monster(
-      name: data['name'],
-      level: data['level'],
-      rarity: data['rarity'],
-      description: data['description'],
-      imagePath: data['imagePath'],
-      dropWeight: data['dropWeight'],
+      name: data['name'] as String,
+      level: data['level'] as int,
+      rarity: Rarity.fromLabel(data['rarity'] as String?),
+      description: data['description'] as String,
+      imagePath: data['imagePath'] as String,
+      dropWeight: data['dropWeight'] as int,
     );
   }
 
@@ -32,7 +32,7 @@ class Monster {
     return {
       'name': name,
       'level': level,
-      'rarity': rarity,
+      'rarity': rarity.label,
       'description': description,
       'imagePath': imagePath,
       'dropWeight': dropWeight,
