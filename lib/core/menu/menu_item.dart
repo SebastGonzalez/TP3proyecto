@@ -43,6 +43,12 @@ final List<MenuItem> menuItems = [
     route: '/gatcha',
   ),
   MenuItem(
+    title: 'Sacrifice',
+    description: 'Sacrifice monsters for rewards',
+    icon: Icons.adf_scanner,
+    route: '/sacrifice',
+  ),
+  MenuItem(
     title: 'Shop',
     description: 'Buy items for your monsters',
     icon: Icons.shopping_cart,
