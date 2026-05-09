@@ -52,7 +52,10 @@ class _ListItem extends StatelessWidget {
         leading: SizedBox(
             width: 50,
             height: 50,
-            child: monster.image,
+            child: Image.asset(
+              monster.imagePath,
+              fit: BoxFit.cover,
+            ),
           ),
         title: Text(monster.name),
         subtitle: Column(

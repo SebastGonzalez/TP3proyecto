@@ -57,7 +57,10 @@ class _DetailView extends StatelessWidget {
             child: SizedBox(
               width: 400,
               height: 400,
-              child: monster.image,
+              child: Image.asset(
+                monster.imagePath,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
 
