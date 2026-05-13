@@ -18,22 +18,53 @@ const List<_CoinOffer> _offers = [
   _CoinOffer(coins: 5000, priceLabel: r'$ 9,99'),
 ];
 
-class ShopScreen extends ConsumerWidget {
+class ShopScreen extends ConsumerStatefulWidget {
   const ShopScreen({super.key});
 
-  void _buy(WidgetRef ref, int coins) {
-    ref.read(coinProvider.notifier).update((state) => state + coins);
+  @override
+  ConsumerState<ShopScreen> createState() => _ShopScreenState();
+}
+
+class _ShopScreenState extends ConsumerState<ShopScreen> {
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.of(context);
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _messenger?.clearSnackBars();
+    super.dispose();
+  }
+
+  void _buy(int coins) {
+    ref.read(coinProvider.notifier).update((state) => state + coins);
+  }
+
+  /// Una sola notificación a la vez; al salir de la tienda no queda cola.
+  void _showPurchaseSnack(int coins) {
+    final messenger = _messenger;
+    if (messenger == null) return;
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Compra simulada: +$coins monedas'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final coins = ref.watch(coinProvider);
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tienda'),
-      ),
+      appBar: AppBar(title: const Text('Tienda')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
         children: [
@@ -59,24 +90,19 @@ class ShopScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 20),
-          ..._offers.map((offer) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _OfferCard(
-                  offer: offer,
-                  accent: scheme.primary,
-                  onBuy: () {
-                    _buy(ref, offer.coins);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Compra simulada: +${offer.coins} monedas',
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-              )),
+          ..._offers.map(
+            (offer) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _OfferCard(
+                offer: offer,
+                accent: scheme.primary,
+                onBuy: () {
+                  _buy(offer.coins);
+                  _showPurchaseSnack(offer.coins);
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -143,72 +169,83 @@ class _OfferCard extends StatelessWidget {
           border: Border.all(color: accent.withOpacity(0.25)),
         ),
         child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.amber.shade200),
-                ),
-                child: Icon(Icons.monetization_on, color: Colors.amber.shade800, size: 28),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.amber.shade200),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${offer.coins} monedas',
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.payments_outlined, size: 16, color: Colors.grey.shade600),
-                        const SizedBox(width: 4),
-                        Text(
-                          offer.priceLabel,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '(demo)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              child: Icon(
+                Icons.monetization_on,
+                color: Colors.amber.shade800,
+                size: 28,
               ),
-              FilledButton(
-                onPressed: onBuy,
-                style: FilledButton.styleFrom(
-                  backgroundColor: accent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${offer.coins} monedas',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.payments_outlined,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        offer.priceLabel,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '(demo)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            FilledButton(
+              onPressed: onBuy,
+              style: FilledButton.styleFrom(
+                backgroundColor: accent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
                 ),
-                child: const Text(
-                  'Comprar',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
-            ],
-          ),
+              child: const Text(
+                'Comprar',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
