@@ -63,7 +63,12 @@ class _MenuDrawer extends ConsumerWidget {
                 onTap: () => context.push('/profile'),
                 child: CircleAvatar(
                   radius: 40,
-                  backgroundImage: Image.network( 'https://www.pngall.com/wp-content/uploads/5/Profile-PNG-High-Quality-Image.png').image,
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  child: Icon(
+                    Icons.person,
+                    size: 44,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
               SizedBox(height: 10),
