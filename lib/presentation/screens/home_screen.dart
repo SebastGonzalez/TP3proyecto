@@ -24,13 +24,12 @@ class HomeScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Coins: $coins'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                ref.read(coinProvider.notifier).state = coins + 1000;
-              },
-              child: Text('Add 1000 Coins'),
+            Text('Coins: $coins', style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 12),
+            Text(
+              'Conseguí más monedas en la Tienda.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
             ),
           ],
         ),
@@ -42,7 +41,6 @@ class HomeScreen extends ConsumerWidget {
 
 class _MenuDrawer extends ConsumerWidget {
   const _MenuDrawer({
-    super.key,
     required this.coins,
   });
 
