@@ -19,23 +19,37 @@ class GatchaScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final coins = ref.watch(coinProvider);
     final monstersAsync = ref.watch(monstersProvider);
+    final machinesAsync = ref.watch(gatchaMachinesProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Gatcha Machines')),
       body: monstersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error cargando monstruos: $e')),
-        data: (monsters) => _GatchaBody(coins: coins, monsters: monsters),
+        data: (monsters) => machinesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error cargando máquinas: $e')),
+          data: (machines) => _GatchaBody(
+            coins: coins,
+            monsters: monsters,
+            machines: machines,
+          ),
+        ),
       ),
     );
   }
 }
 
 class _GatchaBody extends ConsumerStatefulWidget {
-  const _GatchaBody({required this.coins, required this.monsters});
+  const _GatchaBody({
+    required this.coins,
+    required this.monsters,
+    required this.machines,
+  });
 
   final int coins;
   final List<Monster> monsters;
+  final List<GatchaMachine> machines;
 
   @override
   ConsumerState<_GatchaBody> createState() => _GatchaBodyState();
@@ -92,7 +106,7 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
 
   @override
   Widget build(BuildContext context) {
-    final machines = ref.watch(gatchaMachinesProvider);
+    final machines = widget.machines;
     if (machines.isEmpty) {
       return const Center(child: Text('No hay máquinas disponibles'));
     }
