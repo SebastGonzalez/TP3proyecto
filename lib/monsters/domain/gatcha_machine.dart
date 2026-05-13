@@ -27,56 +27,35 @@ class GatchaMachine {
     required this.strategy,
   });
 
+  /// Construye desde un documento de Firestore (`gatcha_machines/{id}`).
+  /// `rarityBoosts` usa las mismas claves que [Rarity.label] (p. ej. `Common`).
+  factory GatchaMachine.fromFirestore(
+    Map<String, dynamic> data, {
+    required String documentId,
+  }) {
+    final boosts = _parseRarityBoosts(data['rarityBoosts']);
+    return GatchaMachine(
+      id: documentId,
+      name: data['name'] as String? ?? '',
+      description: data['description'] as String? ?? '',
+      cost: (data['cost'] as num?)?.toInt() ?? 0,
+      haloColor: Color((data['haloColor'] as num?)?.toInt() ?? 0xFF000000),
+      accentColor: Color((data['accentColor'] as num?)?.toInt() ?? 0xFF000000),
+      strategy: WeightedRarityStrategy(rarityBoosts: boosts),
+    );
+  }
+
+  static Map<Rarity, double> _parseRarityBoosts(dynamic raw) {
+    if (raw is! Map) return const {};
+    final out = <Rarity, double>{};
+    for (final e in raw.entries) {
+      final k = e.key;
+      final v = e.value;
+      if (k is! String || v is! num) continue;
+      out[Rarity.fromLabel(k)] = v.toDouble();
+    }
+    return out;
+  }
+
   Monster roll(List<Monster> pool, Random rng) => strategy.roll(pool, rng);
 }
-
-/// Catálogo "hard-coded" de máquinas. Costo creciente y mejores tasas de
-/// rarezas altas. Se exponen vía `gatchaMachinesProvider` para poder
-/// reemplazar por un FutureProvider que las traiga de Firestore más adelante.
-const List<GatchaMachine> kGatchaMachines = [
-  GatchaMachine(
-    id: 'standard',
-    name: 'Standard',
-    description: 'Probabilidades clásicas',
-    cost: 500,
-    haloColor: Color(0xFFFF9800),
-    accentColor: Color(0xFFE65100),
-    strategy: WeightedRarityStrategy(
-      rarityBoosts: {
-        Rarity.common: 1.0,
-        Rarity.rare: 1.0,
-        Rarity.legendary: 1.0,
-      },
-    ),
-  ),
-  GatchaMachine(
-    id: 'premium',
-    name: 'Premium',
-    description: 'Más chances de Rare y Legendary',
-    cost: 1500,
-    haloColor: Color(0xFF2196F3),
-    accentColor: Color(0xFF0D47A1),
-    strategy: WeightedRarityStrategy(
-      rarityBoosts: {
-        Rarity.common: 0.4,
-        Rarity.rare: 3.0,
-        Rarity.legendary: 2.5,
-      },
-    ),
-  ),
-  GatchaMachine(
-    id: 'elite',
-    name: 'Elite',
-    description: 'Foco en Legendary',
-    cost: 5000,
-    haloColor: Color(0xFF9C27B0),
-    accentColor: Color(0xFF4A148C),
-    strategy: WeightedRarityStrategy(
-      rarityBoosts: {
-        Rarity.common: 0.1,
-        Rarity.rare: 1.0,
-        Rarity.legendary: 8.0,
-      },
-    ),
-  ),
-];
