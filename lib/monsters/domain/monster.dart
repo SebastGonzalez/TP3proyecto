@@ -7,6 +7,8 @@ class Monster {
   String description;
   String imagePath;
   int dropWeight;
+  /// Escala extra en la home (opcional). Si es null, usa [Rarity.homeCompanionScale].
+  final double? homeScale;
 
   Monster({
     required this.name,
@@ -15,7 +17,10 @@ class Monster {
     required this.description,
     required this.imagePath,
     required this.dropWeight,
+    this.homeScale,
   });
+
+  double get homeDisplayScale => homeScale ?? rarity.homeCompanionScale;
 
   factory Monster.fromFirestore(Map<String, dynamic> data) {
     return Monster(
@@ -25,6 +30,7 @@ class Monster {
       description: data['description'] as String,
       imagePath: data['imagePath'] as String,
       dropWeight: data['dropWeight'] as int,
+      homeScale: (data['homeScale'] as num?)?.toDouble(),
     );
   }
 
@@ -36,6 +42,7 @@ class Monster {
       'description': description,
       'imagePath': imagePath,
       'dropWeight': dropWeight,
+      if (homeScale != null) 'homeScale': homeScale,
     };
   }
 }

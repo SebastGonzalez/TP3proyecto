@@ -53,4 +53,13 @@ enum Rarity {
   /// Más legible que `monster.rarity != Rarity.common` y más
   /// extensible (hoy hay 1 nivel "no común", mañana puede haber más).
   bool get isAtLeastRare => weight >= Rarity.rare.weight;
+
+  /// Multiplicador de tamaño del compañero en la home (sprites con mucho
+  /// padding transparente suelen necesitar valores más altos).
+  double get homeCompanionScale => switch (this) {
+        Rarity.common => 1.0,
+        Rarity.rare => 1.08,
+        Rarity.legendary => 1.22,
+        Rarity.fusion => 1.28,
+      };
 }
