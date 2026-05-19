@@ -117,7 +117,7 @@ class _EmptySacrificesMessage extends StatelessWidget {
             Text(
               'Revisá en cada documento:\n'
               '• rewardName (string) = mismo valor que name del monstruo en "monsters".\n'
-              '• slotRarities (array), por ejemplo Common, Rare (mismos textos que en la app).\n'
+              '• slots (array) con rarezas y/o nombres de monstruo.\n'
               '• active debe seguir en true.',
               textAlign: TextAlign.center,
               style: textStyle,

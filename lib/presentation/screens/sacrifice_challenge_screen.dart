@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
+import 'package:prueba1/monsters/domain/sacrifice_slot.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_progress_provider.dart';
@@ -54,11 +55,11 @@ class _SacrificeChallengeScreenState
   }
 
   void _openPicker(int slotIndex) {
-    final need = ch.slotRarities[slotIndex];
+    final need = ch.slots[slotIndex];
     final captured = ref.read(capturedMonstersProvider);
     final options = captured
         .where(
-          (e) => e.monster.rarity == need && _availableForSlot(e, slotIndex),
+          (e) => need.matches(e.monster) && _availableForSlot(e, slotIndex),
         )
         .toList();
 
@@ -70,7 +71,7 @@ class _SacrificeChallengeScreenState
           return Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              'No tenés monstruos ${need.label} disponibles para este espacio.',
+              _emptySlotMessage(need),
               textAlign: TextAlign.center,
             ),
           );
@@ -100,10 +101,17 @@ class _SacrificeChallengeScreenState
 
   bool get _allFilled => _slots.every((e) => e != null);
 
+  String _emptySlotMessage(SacrificeSlotRequirement need) => switch (need) {
+        RaritySlotRequirement(:final rarity) =>
+          'No tenés monstruos ${rarity.label} disponibles para este espacio.',
+        MonsterNameSlotRequirement(:final monsterName) =>
+          'No tenés a $monsterName disponible para este espacio.',
+      };
+
   bool get _valid {
     if (!_allFilled) return false;
     for (var i = 0; i < _slots.length; i++) {
-      if (_slots[i]!.rarity != ch.slotRarities[i]) return false;
+      if (!ch.slots[i].matches(_slots[i]!)) return false;
     }
     return true;
   }
@@ -172,7 +180,7 @@ class _SacrificeChallengeScreenState
             ),
             const SizedBox(height: 12),
             ...List.generate(ch.slotCount, (i) {
-              final rarity = ch.slotRarities[i];
+              final requirement = ch.slots[i];
               final picked = _slots[i];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -180,7 +188,7 @@ class _SacrificeChallengeScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Espacio ${i + 1}: ${rarity.label}',
+                      _slotTitle(i, requirement),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 6),
@@ -225,6 +233,14 @@ class _SacrificeChallengeScreenState
       ),
     );
   }
+
+  String _slotTitle(int index, SacrificeSlotRequirement requirement) =>
+      switch (requirement) {
+        RaritySlotRequirement(:final rarity) =>
+          'Espacio ${index + 1}: ${rarity.label}',
+        MonsterNameSlotRequirement(:final monsterName) =>
+          'Espacio ${index + 1}: $monsterName',
+      };
 }
 
 class _EmptySlot extends StatelessWidget {
