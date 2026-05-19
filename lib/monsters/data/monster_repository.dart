@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 
+/// Catálogo en `monsters`. Campo `active` (bool): `false` oculta el monstruo.
 class MonsterRepository {
   MonsterRepository({FirebaseFirestore? firestore})
       : _db = firestore ?? FirebaseFirestore.instance;
@@ -9,6 +10,7 @@ class MonsterRepository {
 
   static const String collectionPath = 'monsters';
 
+  /// Solo documentos con `active != false` (si no existe el campo, se incluye).
   Stream<List<Monster>> watchMonsters() {
     return _db.collection(collectionPath).snapshots().map(_parseSnapshot);
   }
@@ -18,9 +20,12 @@ class MonsterRepository {
     return _parseSnapshot(snapshot);
   }
 
+  bool _isActive(Map<String, dynamic> data) => data['active'] as bool? ?? true;
+
   List<Monster> _parseSnapshot(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    return snapshot.docs
-        .map((doc) => Monster.fromFirestore(doc.data()))
-        .toList();
+    return [
+      for (final doc in snapshot.docs)
+        if (_isActive(doc.data())) Monster.fromFirestore(doc.data()),
+    ];
   }
 }

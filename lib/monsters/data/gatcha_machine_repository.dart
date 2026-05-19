@@ -12,6 +12,7 @@ import 'package:prueba1/monsters/domain/gatcha_machine.dart';
 /// - `rarityBoosts` (mapa): claves = [Rarity.label] (`Common`, `Rare`,
 ///   `Legendary`), valores = double
 /// - `rollsPerPull` (int, opcional): monstruos por tirada (default 1, máx. 10)
+/// - `active` (bool, opcional): `false` oculta la máquina; si falta, se muestra
 /// - `order` (int, opcional): orden en el carrusel (menor = primero)
 class GatchaMachineRepository {
   GatchaMachineRepository({FirebaseFirestore? firestore})
@@ -30,15 +31,22 @@ class GatchaMachineRepository {
     return _parseSnapshot(snapshot);
   }
 
+  bool _isActive(Map<String, dynamic> data) => data['active'] as bool? ?? true;
+
   List<GatchaMachine> _parseSnapshot(
     QuerySnapshot<Map<String, dynamic>> snapshot,
   ) {
-    final parsed = snapshot.docs.map((doc) {
+    final parsed = <({int order, GatchaMachine machine})>[];
+    for (final doc in snapshot.docs) {
       final data = doc.data();
+      if (!_isActive(data)) continue;
       final order = (data['order'] as num?)?.toInt() ?? 1 << 20;
-      return (order, GatchaMachine.fromFirestore(data, documentId: doc.id));
-    }).toList();
-    parsed.sort((a, b) => a.$1.compareTo(b.$1));
-    return parsed.map((e) => e.$2).toList();
+      parsed.add((
+        order: order,
+        machine: GatchaMachine.fromFirestore(data, documentId: doc.id),
+      ));
+    }
+    parsed.sort((a, b) => a.order.compareTo(b.order));
+    return parsed.map((e) => e.machine).toList();
   }
 }

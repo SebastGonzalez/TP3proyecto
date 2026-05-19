@@ -34,6 +34,7 @@ class GatchaMachine {
   /// Construye desde un documento de Firestore (`gatcha_machines/{id}`).
   /// `rarityBoosts` usa las mismas claves que [Rarity.label] (p. ej. `Common`).
   /// `rollsPerPull` opcional (default 1, máximo 10).
+  /// En Firestore, `active: false` excluye la máquina (filtrado en el repository).
   factory GatchaMachine.fromFirestore(
     Map<String, dynamic> data, {
     required String documentId,
