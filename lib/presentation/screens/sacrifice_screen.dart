@@ -31,7 +31,7 @@ class _SacrificeScreenState extends ConsumerState<SacrificeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sacrificios'),
+        title: const Text('Fusiones'),
       ),
       body: asyncChallenges.when(
         loading: () => const Center(child: CircularProgressIndicator()),
