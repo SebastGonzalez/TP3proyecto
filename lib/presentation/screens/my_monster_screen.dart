@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
+import 'package:prueba1/presentation/widgets/monster_card_tile.dart';
 
 class MyMonsterScreen extends ConsumerWidget {
   const MyMonsterScreen({super.key});
@@ -52,9 +53,10 @@ class MyMonsterScreen extends ConsumerWidget {
                     itemCount: captured.length,
                     itemBuilder: (context, i) {
                       final entry = captured[i];
-                      return _CapturedCard(
-                        entry: entry,
+                      return MonsterCardTile(
+                        monster: entry.monster,
                         rarityColor: entry.monster.rarity.color,
+                        stackCount: entry.count,
                         onTap: () => context.push(
                           '/details',
                           extra: entry.monster,
@@ -94,88 +96,6 @@ class _EmptyState extends StatelessWidget {
             label: const Text('Ir al Gatcha'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _CapturedCard extends StatelessWidget {
-  const _CapturedCard({
-    required this.entry,
-    required this.rarityColor,
-    required this.onTap,
-  });
-
-  final CapturedEntry entry;
-  final Color rarityColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: rarityColor.withOpacity(0.3)),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Image.asset(
-                      entry.monster.imagePath,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    entry.monster.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    entry.monster.rarity.label,
-                    style: TextStyle(
-                      color: rarityColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (entry.count > 1)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: rarityColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    'x${entry.count}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }

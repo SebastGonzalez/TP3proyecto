@@ -32,6 +32,21 @@ class CapturedMonstersNotifier extends Notifier<List<CapturedEntry>> {
     }
   }
 
+  /// Removes one copy of [monster] from the collection (for sacrifices / SBC).
+  void removeOne(Monster monster) {
+    final idx = state.indexWhere((e) => e.monster.name == monster.name);
+    if (idx == -1) return;
+    final cur = state[idx];
+    if (cur.count <= 1) {
+      final next = [...state]..removeAt(idx);
+      state = next;
+    } else {
+      final updated = [...state];
+      updated[idx] = cur.copyWith(count: cur.count - 1);
+      state = updated;
+    }
+  }
+
   void clear() => state = const [];
 }
 
