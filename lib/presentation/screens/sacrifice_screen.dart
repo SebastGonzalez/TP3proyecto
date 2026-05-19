@@ -7,10 +7,10 @@ class SacrificeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sacrifice Screen'),
+        title: Text('Fusion Screen'),
       ),
       body: Center(
-        child: Text('Sacrifice Screen Content'),
+        child: Text('Fusion Screen Content'),
       ),
     );
   }

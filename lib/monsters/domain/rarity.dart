@@ -23,7 +23,13 @@ enum Rarity {
     label: 'Legendary',
     color: Color(0xFFFFB300),
     weight: 2,
+  ),
+  fusion(
+    label: 'Fusion',
+    color: Color.fromARGB(255, 14, 173, 27),
+    weight: 3,
   );
+
 
   const Rarity({
     required this.label,
