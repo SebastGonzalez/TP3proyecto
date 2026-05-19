@@ -79,6 +79,7 @@ class _HomeTopBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
+            iconSize: 32,
             icon: const Icon(Icons.menu_rounded, color: Color(0xFF2D4A5E)),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),

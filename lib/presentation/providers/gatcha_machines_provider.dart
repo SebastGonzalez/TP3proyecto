@@ -7,6 +7,7 @@ final gatchaMachineRepositoryProvider = Provider<GatchaMachineRepository>(
 );
 
 /// Lista de máquinas cargada desde Firestore (`gatcha_machines`).
+/// Se vuelve a pedir al entrar en [GatchaScreen] (`ref.invalidate`).
 final gatchaMachinesProvider = FutureProvider<List<GatchaMachine>>((ref) async {
   final repo = ref.read(gatchaMachineRepositoryProvider);
   return repo.getMachines();

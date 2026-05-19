@@ -17,6 +17,9 @@ class GatchaMachine {
   final Color accentColor;
   final RollStrategy strategy;
 
+  /// Cuántos monstruos se obtienen por cada tirada (Firestore: `rollsPerPull`).
+  final int rollsPerPull;
+
   const GatchaMachine({
     required this.id,
     required this.name,
@@ -25,10 +28,12 @@ class GatchaMachine {
     required this.haloColor,
     required this.accentColor,
     required this.strategy,
+    this.rollsPerPull = 1,
   });
 
   /// Construye desde un documento de Firestore (`gatcha_machines/{id}`).
   /// `rarityBoosts` usa las mismas claves que [Rarity.label] (p. ej. `Common`).
+  /// `rollsPerPull` opcional (default 1, máximo 10).
   factory GatchaMachine.fromFirestore(
     Map<String, dynamic> data, {
     required String documentId,
@@ -42,7 +47,13 @@ class GatchaMachine {
       haloColor: Color((data['haloColor'] as num?)?.toInt() ?? 0xFF000000),
       accentColor: Color((data['accentColor'] as num?)?.toInt() ?? 0xFF000000),
       strategy: WeightedRarityStrategy(rarityBoosts: boosts),
+      rollsPerPull: _parseRollsPerPull(data['rollsPerPull']),
     );
+  }
+
+  static int _parseRollsPerPull(dynamic raw) {
+    final n = (raw as num?)?.toInt() ?? 1;
+    return n.clamp(1, 10);
   }
 
   static Map<Rarity, double> _parseRarityBoosts(dynamic raw) {
@@ -58,4 +69,9 @@ class GatchaMachine {
   }
 
   Monster roll(List<Monster> pool, Random rng) => strategy.roll(pool, rng);
+
+  /// Ejecuta [rollsPerPull] tiradas independientes sobre el mismo pool.
+  List<Monster> rollMany(List<Monster> pool, Random rng) => [
+        for (var i = 0; i < rollsPerPull; i++) roll(pool, rng),
+      ];
 }

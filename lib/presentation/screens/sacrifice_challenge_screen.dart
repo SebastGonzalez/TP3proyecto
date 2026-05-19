@@ -5,6 +5,7 @@ import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
 import 'package:prueba1/monsters/domain/sacrifice_slot.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
+import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_progress_provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
@@ -34,7 +35,8 @@ class _SacrificeChallengeScreenState
 
   @override
   void dispose() {
-    // Al volver a la lista de SBC, refrescar por si cambió Firestore mientras estabas acá.
+    // Al volver a la lista, recargar catálogo y SBC por si cambió Firestore.
+    ref.invalidate(monstersProvider);
     ref.invalidate(sacrificeChallengesProvider);
     super.dispose();
   }

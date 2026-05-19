@@ -12,11 +12,25 @@ import 'package:prueba1/presentation/providers/gatcha_machines_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
 
-class GatchaScreen extends ConsumerWidget {
+class GatchaScreen extends ConsumerStatefulWidget {
   const GatchaScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GatchaScreen> createState() => _GatchaScreenState();
+}
+
+class _GatchaScreenState extends ConsumerState<GatchaScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(monstersProvider);
+      ref.invalidate(gatchaMachinesProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final coins = ref.watch(coinProvider);
     final monstersAsync = ref.watch(monstersProvider);
     final machinesAsync = ref.watch(gatchaMachinesProvider);
@@ -93,13 +107,19 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
 
     setState(() => _rolling = true);
     ref.read(coinProvider.notifier).update((state) => state - machine.cost);
-    // La pantalla no sabe cómo se rolea: delega en la máquina, que delega
-    // en su `RollStrategy`. Cambiar la mecánica = cambiar la strategy.
-    final won = machine.roll(widget.monsters, _rng);
-    ref.read(capturedMonstersProvider.notifier).add(won);
+    // La pantalla no sabe cómo se rolea: delega en la máquina (`rollsPerPull`
+    // + `RollStrategy`). Cambiar la mecánica = cambiar la strategy o Firestore.
+    final won = machine.rollMany(widget.monsters, _rng);
+    final captured = ref.read(capturedMonstersProvider.notifier);
+    for (final monster in won) {
+      captured.add(monster);
+    }
 
     if (!mounted) return;
-    await showGatchaReveal(context, won);
+    for (final monster in won) {
+      await showGatchaReveal(context, monster);
+      if (!mounted) return;
+    }
     if (!mounted) return;
     setState(() => _rolling = false);
   }
@@ -180,7 +200,9 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
                   label: Text(
                     _rolling
                         ? 'Tirando...'
-                        : 'Roll ${machine.name} (${machine.cost} coins)',
+                        : machine.rollsPerPull > 1
+                            ? 'Roll ×${machine.rollsPerPull} ${machine.name} (${machine.cost} coins)'
+                            : 'Roll ${machine.name} (${machine.cost} coins)',
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 16,
@@ -288,6 +310,17 @@ class _MachinePage extends StatelessWidget {
             ),
           ),
           _RarityRates(strategy: machine.strategy),
+          if (machine.rollsPerPull > 1) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${machine.rollsPerPull} monstruos por tirada',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: machine.accentColor.withOpacity(0.85),
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

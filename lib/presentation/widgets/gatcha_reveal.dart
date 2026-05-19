@@ -6,7 +6,7 @@ import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
 
 /// Abre la animación full-screen de "tirado de gatcha" con la pokébola + carta
-/// del monstruo obtenido. Se cierra al tocar la pantalla cuando termina.
+/// del monstruo obtenido. Tap salta a la carta; tap de nuevo cierra.
 Future<void> showGatchaReveal(BuildContext context, Monster monster) {
   return Navigator.of(context).push(
     PageRouteBuilder<void>(
@@ -37,6 +37,7 @@ class _GatchaRevealOverlayState extends State<GatchaRevealOverlay>
 
   bool _showCard = false;
   bool _canDismiss = false;
+  bool _skipped = false;
 
   @override
   void initState() {
@@ -67,15 +68,52 @@ class _GatchaRevealOverlayState extends State<GatchaRevealOverlay>
 
   Future<void> _runSequence() async {
     await _ballCtrl.forward();
+    if (!mounted || _skipped) return;
     await _shakeCtrl.forward();
-    if (!mounted) return;
+    if (!mounted || _skipped) return;
     unawaited(_flashCtrl.forward());
     await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted || _skipped) return;
+    _revealCard(animate: true);
+  }
+
+  void _revealCard({required bool animate}) {
     if (!mounted) return;
     setState(() => _showCard = true);
-    await _cardCtrl.forward();
-    if (!mounted) return;
-    setState(() => _canDismiss = true);
+    if (animate) {
+      _cardCtrl.forward(from: 0).then((_) {
+        if (mounted && !_skipped) setState(() => _canDismiss = true);
+      });
+    } else {
+      _cardCtrl.value = 1;
+      setState(() => _canDismiss = true);
+    }
+  }
+
+  void _skipToCard() {
+    if (_skipped && _canDismiss) return;
+    _skipped = true;
+    _ballCtrl.stop();
+    _ballCtrl.value = 1;
+    _shakeCtrl.stop();
+    _shakeCtrl.value = 1;
+    _flashCtrl.stop();
+    _flashCtrl.value = 0;
+    if (_showCard) {
+      _cardCtrl.stop();
+      _cardCtrl.value = 1;
+      if (!_canDismiss) setState(() => _canDismiss = true);
+    } else {
+      _revealCard(animate: false);
+    }
+  }
+
+  void _onTap() {
+    if (_canDismiss) {
+      Navigator.of(context).pop();
+      return;
+    }
+    _skipToCard();
   }
 
   @override
@@ -97,7 +135,7 @@ class _GatchaRevealOverlayState extends State<GatchaRevealOverlay>
       backgroundColor: Colors.transparent,
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: _canDismiss ? () => Navigator.of(context).pop() : null,
+        onTap: _onTap,
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -110,8 +148,13 @@ class _GatchaRevealOverlayState extends State<GatchaRevealOverlay>
             if (!_showCard) _buildPokeball(),
             _Flash(controller: _flashCtrl),
             if (_showCard) _buildCard(rarityColor, isRare),
-            if (_canDismiss)
-              Positioned(
+            if (!_canDismiss)
+              const Positioned(
+                bottom: 40,
+                child: _PulsingHint(text: 'Tocá para saltar'),
+              )
+            else
+              const Positioned(
                 bottom: 40,
                 child: _PulsingHint(text: 'Tocá para continuar'),
               ),

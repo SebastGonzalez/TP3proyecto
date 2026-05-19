@@ -4,11 +4,24 @@ import 'package:go_router/go_router.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 
-class PokedexScreen extends ConsumerWidget {
+class PokedexScreen extends ConsumerStatefulWidget {
   const PokedexScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PokedexScreen> createState() => _PokedexScreenState();
+}
+
+class _PokedexScreenState extends ConsumerState<PokedexScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(monstersProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final monstersAsync = ref.watch(monstersProvider);
 
     return Scaffold(
