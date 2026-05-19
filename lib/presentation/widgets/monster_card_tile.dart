@@ -8,12 +8,16 @@ class MonsterCardTile extends StatelessWidget {
     required this.monster,
     required this.rarityColor,
     this.onTap,
+    this.onLongPress,
     this.stackCount,
+    this.highlighted = false,
   });
 
   final Monster monster;
   final Color rarityColor;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool highlighted;
   /// When non-null and > 1, shows an "xN" badge like duplicate stacks.
   final int? stackCount;
 
@@ -23,12 +27,18 @@ class MonsterCardTile extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: rarityColor.withValues(alpha: 0.3)),
+        side: BorderSide(
+          color: highlighted
+              ? Colors.amber.shade600
+              : rarityColor.withValues(alpha: 0.3),
+          width: highlighted ? 2.5 : 1,
+        ),
       ),
-      child: onTap != null
+      child: onTap != null || onLongPress != null
           ? InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: onTap,
+              onLongPress: onLongPress,
               child: _cardBody(),
             )
           : _cardBody(),
@@ -66,6 +76,12 @@ class MonsterCardTile extends StatelessWidget {
             ],
           ),
         ),
+        if (highlighted)
+          Positioned(
+            top: 6,
+            left: 6,
+            child: Icon(Icons.star_rounded, color: Colors.amber.shade700, size: 22),
+          ),
         if (stackCount != null && stackCount! > 1)
           Positioned(
             top: 6,
