@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/monsters/data/sacrifice_repository.dart';
 import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
+import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_progress_provider.dart';
 import 'package:prueba1/presentation/widgets/monster_card_tile.dart';
@@ -18,8 +19,9 @@ class _SacrificeScreenState extends ConsumerState<SacrificeScreen> {
   @override
   void initState() {
     super.initState();
-    // Al volver a abrir Sacrificios (nuevo push), pedir de nuevo los SBC en Firestore.
+    // Al entrar, recargar catálogo y SBC desde Firestore.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(monstersProvider);
       ref.invalidate(sacrificeChallengesProvider);
     });
   }
