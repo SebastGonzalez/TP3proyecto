@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/screens/gatcha_screen.dart';
@@ -9,6 +10,8 @@ import 'package:prueba1/presentation/screens/pokedex_screen.dart';
 import 'package:prueba1/presentation/screens/profile_screen.dart';
 import 'package:prueba1/presentation/screens/settings_screen.dart';
 import 'package:prueba1/presentation/screens/shop_screen.dart';
+import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
+import 'package:prueba1/presentation/screens/sacrifice_challenge_screen.dart';
 import 'package:prueba1/presentation/screens/sacrifice_screen.dart';
 
 final app_router = GoRouter(
@@ -24,6 +27,18 @@ final app_router = GoRouter(
     GoRoute(path: '/gatcha',      builder: (context, state) =>  GatchaScreen(),),
     GoRoute(path: '/mymonsters',  builder: (context, state) =>  MyMonsterScreen(),),
     GoRoute(path: '/shop',        builder: (context, state) =>  ShopScreen()),
-    GoRoute(path: '/sacrifice',   builder: (context, state) =>  SacrificeScreen(),),
+    GoRoute(path: '/sacrifice',   builder: (context, state) =>  const SacrificeScreen(),),
+    GoRoute(
+      path: '/sacrifice/challenge',
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is! SacrificeChallenge) {
+          return const Scaffold(
+            body: Center(child: Text('Desafío no válido')),
+          );
+        }
+        return SacrificeChallengeScreen(challenge: extra);
+      },
+    ),
     ],
 );
