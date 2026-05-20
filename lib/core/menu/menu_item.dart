@@ -49,8 +49,20 @@ final List<MenuItem> menuItems = [
     route: '/sacrifice',
   ),
   MenuItem(
+    title: 'Market',
+    description: 'Buy and sell Monsters',
+    icon: Icons.shopping_bag,
+    route: '/market',
+  ),
+  MenuItem(
+    title: 'Game',
+    description: 'Play mini game to earn rewards',
+    icon: Icons.videogame_asset,
+    route: '/game',
+  ),
+  MenuItem(
     title: 'Shop',
-    description: 'Buy items for your monsters',
+    description: 'Buy coins and skins',
     icon: Icons.shopping_cart,
     route: '/shop',
   ),
