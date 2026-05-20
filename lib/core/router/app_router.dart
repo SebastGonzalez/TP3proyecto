@@ -4,6 +4,7 @@ import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/screens/gatcha_screen.dart';
 import 'package:prueba1/presentation/screens/home_screen.dart';
 import 'package:prueba1/presentation/screens/login_screen.dart';
+import 'package:prueba1/presentation/screens/signup_screen.dart';
 import 'package:prueba1/presentation/screens/monster_details.dart';
 import 'package:prueba1/presentation/screens/my_monster_screen.dart';
 import 'package:prueba1/presentation/screens/pokedex_screen.dart';
@@ -18,7 +19,8 @@ final app_router = GoRouter(
   
   initialLocation: '/login',
   routes: [  
-    GoRoute(path: '/login'  ,     builder: (context, state) =>  LoginScreen(),),
+    GoRoute(path: '/login'  ,     builder: (context, state) =>  const LoginScreen(),),
+    GoRoute(path: '/signup'  ,    builder: (context, state) =>  const SignupScreen(),),
     GoRoute(path: '/home'   ,     builder: (context, state) =>  HomeScreen(),),
     GoRoute(path: '/details',     builder: (context, state) =>  MonsterDetails(monster: state.extra as Monster),),
     GoRoute(path: '/settings',    builder: (context, state) =>  SettingsScreen(),),

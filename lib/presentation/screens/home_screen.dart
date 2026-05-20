@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/core/menu/menu_item.dart';
+import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
-
-/// Mismo placeholder que en perfil hasta haber auth real.
-const _kUsername = 'User Name';
+import 'package:prueba1/core/services/auth_service.dart';
 
 /// Cuánto se corre el personaje a la derecha si hay compañero (fracción del ancho del PJ).
 const _kHomeShiftWithCompanionFactor = 0.08;
@@ -16,7 +15,9 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(authUsernameBootstrapProvider);
     final coins = ref.watch(coinProvider);
+    final username = ref.watch(currentUsernameProvider);
 
     return Scaffold(
       drawer: _MenuDrawer(coins: coins),
@@ -45,7 +46,7 @@ class HomeScreen extends ConsumerWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: _CharacterHub(
-                        username: _kUsername,
+                        username: username,
                         compact: compact,
                         maxImageHeight: constraints.maxHeight * 0.48,
                       ),
@@ -240,6 +241,7 @@ class _MenuDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final items = menuItems;
+    final username = ref.watch(currentUsernameProvider);
 
     return SafeArea(
       child: NavigationDrawer(
@@ -264,9 +266,9 @@ class _MenuDrawer extends ConsumerWidget {
                 'Coins: $coins',
                 style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
-              const Text(
-                _kUsername,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                username,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -274,7 +276,11 @@ class _MenuDrawer extends ConsumerWidget {
         footer: Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton(
-            onPressed: () => context.go('/login'),
+            onPressed: () async {
+              clearLoggedInUsername(ref);
+              await AuthService.logout();
+              if (context.mounted) context.go('/login');
+            },
             child: const Text('Logout'),
           ),
         ),

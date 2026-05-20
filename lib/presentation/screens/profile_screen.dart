@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prueba1/presentation/providers/auth_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final username = ref.watch(currentUsernameProvider);
 
     return Scaffold(
       body: CustomScrollView(
@@ -32,9 +34,9 @@ class ProfileScreen extends StatelessWidget {
                       backgroundImage: Image.network( 'https://www.pngall.com/wp-content/uploads/5/Profile-PNG-High-Quality-Image.png').image,
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'User Name',
-                      style: TextStyle(
+                    Text(
+                      username,
+                      style: const TextStyle(
                         color: Color(0xFF2D2D2D),
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -73,7 +75,7 @@ class ProfileScreen extends StatelessWidget {
                   // Sección info
                   _SectionLabel('INFORMACIÓN'),
                   const SizedBox(height: 10),
-                  _InfoTile(icon: Icons.badge_outlined, label: 'Nombre', value: 'Entrenador'),
+                  _InfoTile(icon: Icons.badge_outlined, label: 'Nombre', value: username),
                   _InfoTile(icon: Icons.star_outline, label: 'Nivel', value: '1'),
                   _InfoTile(icon: Icons.emoji_events_outlined, label: 'Rango', value: 'Novato'),
 

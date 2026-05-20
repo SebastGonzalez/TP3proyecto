@@ -20,6 +20,6 @@ final homeCompanionVisibleProvider = Provider<Monster?>((ref) {
   final selected = ref.watch(homeCompanionProvider);
   if (selected == null) return null;
   final owned = ref.watch(capturedMonstersProvider);
-  final stillOwned = owned.any((e) => e.monster.name == selected.name);
+  final stillOwned = owned.any((e) => e.monster.id == selected.id);
   return stillOwned ? selected : null;
 });

@@ -1,6 +1,8 @@
 import 'package:prueba1/monsters/domain/rarity.dart';
 
 class Monster {
+  /// Id del documento en Firestore (`monsters/{id}`).
+  final String id;
   String name;
   int level;
   Rarity rarity;
@@ -11,6 +13,7 @@ class Monster {
   final double? homeScale;
 
   Monster({
+    required this.id,
     required this.name,
     required this.level,
     required this.rarity,
@@ -22,8 +25,9 @@ class Monster {
 
   double get homeDisplayScale => homeScale ?? rarity.homeCompanionScale;
 
-  factory Monster.fromFirestore(Map<String, dynamic> data) {
+  factory Monster.fromFirestore(String id, Map<String, dynamic> data) {
     return Monster(
+      id: id,
       name: data['name'] as String,
       level: data['level'] as int,
       rarity: Rarity.fromLabel(data['rarity'] as String?),
