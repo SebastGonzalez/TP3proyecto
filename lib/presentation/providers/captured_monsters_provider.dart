@@ -24,14 +24,14 @@ class CapturedMonstersNotifier extends Notifier<void> {
 
   Future<void> removeById(String ownedInstanceId) async {
     if (ref.read(homeCompanionProvider) == ownedInstanceId) {
-      ref.read(homeCompanionProvider.notifier).clear();
+      await ref.read(homeCompanionProvider.notifier).clear();
     }
     await ref.read(ownedMonstersControllerProvider).remove(ownedInstanceId);
   }
 
   Future<void> clear() async {
     await ref.read(ownedMonstersControllerProvider).clearAll();
-    ref.read(homeCompanionProvider.notifier).clear();
+    await ref.read(homeCompanionProvider.notifier).clear();
   }
 }
 

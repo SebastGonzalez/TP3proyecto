@@ -4,10 +4,25 @@ import 'package:go_router/go_router.dart';
 import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
+import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/widgets/monster_card_tile.dart';
 
-class MyMonsterScreen extends ConsumerWidget {
+class MyMonsterScreen extends ConsumerStatefulWidget {
   const MyMonsterScreen({super.key});
+
+  @override
+  ConsumerState<MyMonsterScreen> createState() => _MyMonsterScreenState();
+}
+
+class _MyMonsterScreenState extends ConsumerState<MyMonsterScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      refreshMonstersCatalog(ref);
+    });
+  }
 
   void _showCompanionHelp(BuildContext context) {
     showDialog<void>(
@@ -29,20 +44,25 @@ class MyMonsterScreen extends ConsumerWidget {
     );
   }
 
-  void _onCompanionLongPress(
+  Future<void> _onCompanionLongPress(
     BuildContext context,
     WidgetRef ref,
     OwnedMonster entry,
     bool isCompanion,
-  ) {
+  ) async {
     final notifier = ref.read(homeCompanionProvider.notifier);
     if (isCompanion) {
-      notifier.clear();
+      await notifier.clear();
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${entry.monster.name} ya no te acompaña en la home')),
       );
     } else {
-      notifier.setCompanion(entry.id);
+      await notifier.setCompanion(
+        entry.id,
+        imagePath: entry.monster.imagePath,
+      );
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${entry.monster.name} te acompañará en la home')),
       );
@@ -50,17 +70,17 @@ class MyMonsterScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final captured = ref.watch(capturedMonstersProvider);
     final companionId = ref.watch(homeCompanionProvider);
     final unique = captured.map((e) => e.monsterId).toSet().length;
     final total = captured.length;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Monsters'),
-          actions: [
-            if (captured.isNotEmpty)
+      appBar: AppPageAppBar(
+        title: 'Mis monstruos',
+        actions: [
+          if (captured.isNotEmpty)
             IconButton(
               tooltip: 'Vaciar colección',
               icon: const Icon(Icons.delete_outline),

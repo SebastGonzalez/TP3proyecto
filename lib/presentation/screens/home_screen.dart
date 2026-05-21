@@ -1,26 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prueba1/core/menu/menu_item.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
+import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
-import 'package:prueba1/core/services/auth_service.dart';
+import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
+import 'package:prueba1/presentation/widgets/app_drawer.dart';
 
 /// Cuánto se corre el personaje a la derecha si hay compañero (fracción del ancho del PJ).
 const _kHomeShiftWithCompanionFactor = 0.08;
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void _openDrawerIfRequested() {
+    if (!ref.read(reopenDrawerOnHomeProvider)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _scaffoldKey.currentState?.openDrawer();
+      ref.read(reopenDrawerOnHomeProvider.notifier).state = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<bool>(reopenDrawerOnHomeProvider, (previous, next) {
+      if (next == true) _openDrawerIfRequested();
+    });
+
     ref.watch(authUsernameBootstrapProvider);
     final coins = ref.watch(coinProvider);
     final username = ref.watch(currentUsernameProvider);
 
     return Scaffold(
-      drawer: _MenuDrawer(coins: coins),
+      key: _scaffoldKey,
+      drawer: const AppDrawer(),
       body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -56,7 +78,11 @@ class HomeScreen extends ConsumerWidget {
                     top: 0,
                     left: 0,
                     right: 0,
-                    child: _HomeTopBar(coins: coins),
+                    child: _HomeTopBar(
+                      coins: coins,
+                      onMenuPressed: () =>
+                          _scaffoldKey.currentState?.openDrawer(),
+                    ),
                   ),
                 ],
               );
@@ -69,9 +95,13 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _HomeTopBar extends StatelessWidget {
-  const _HomeTopBar({required this.coins});
+  const _HomeTopBar({
+    required this.coins,
+    required this.onMenuPressed,
+  });
 
   final int coins;
+  final VoidCallback onMenuPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +112,7 @@ class _HomeTopBar extends StatelessWidget {
           IconButton(
             iconSize: 32,
             icon: const Icon(Icons.menu_rounded, color: Color(0xFF2D4A5E)),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+            onPressed: onMenuPressed,
           ),
           const Spacer(),
           _CoinChip(coins: coins),
@@ -159,18 +189,22 @@ class _CharacterHub extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final companion = ref.watch(homeCompanionVisibleProvider);
+    final companion = ref.watch(homeCompanionViewProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final imageWidth = constraints.maxWidth * 0.62;
-        final companionWidth = imageWidth * 1.05;
-        final shiftRight = companion != null
-            ? imageWidth * _kHomeShiftWithCompanionFactor
-            : 0.0;
+        final onLeft = companion?.side != HomeCompanionSide.right;
+        final companionWidth =
+            imageWidth * 1.05 * (companion?.scale ?? 1);
+        final shiftX = companion == null
+            ? 0.0
+            : (onLeft ? 1 : -1) *
+                imageWidth *
+                _kHomeShiftWithCompanionFactor;
 
         return Transform.translate(
-          offset: Offset(shiftRight, 0),
+          offset: Offset(shiftX, 0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -185,7 +219,8 @@ class _CharacterHub extends ConsumerWidget {
                       children: [
                         if (companion != null)
                           Positioned(
-                            left: -imageWidth * 0.42,
+                            left: onLeft ? -imageWidth * 0.42 : null,
+                            right: onLeft ? null : -imageWidth * 0.42,
                             bottom: 0,
                             child: Image.asset(
                               companion.imagePath,
@@ -229,71 +264,6 @@ class _CharacterHub extends ConsumerWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _MenuDrawer extends ConsumerWidget {
-  const _MenuDrawer({required this.coins});
-
-  final int coins;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final items = menuItems;
-    final username = ref.watch(currentUsernameProvider);
-
-    return SafeArea(
-      child: NavigationDrawer(
-        header: DrawerHeader(
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () => context.push('/profile'),
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
-                  child: Icon(
-                    Icons.person,
-                    size: 44,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Coins: $coins',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-              Text(
-                username,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
-        footer: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton(
-            onPressed: () async {
-              clearLoggedInUsername(ref);
-              await AuthService.logout();
-              if (context.mounted) context.go('/login');
-            },
-            child: const Text('Logout'),
-          ),
-        ),
-        children: [
-          for (final item in items)
-            ListTile(
-              leading: Icon(item.icon),
-              title: Text(item.title),
-              subtitle: Text(item.description),
-              onTap: () => context.push(item.route),
-            ),
-        ],
-      ),
     );
   }
 }

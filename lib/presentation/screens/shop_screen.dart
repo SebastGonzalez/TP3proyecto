@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 
 /// Paquete de monedas vendido en el mercado (precio solo demostración).
@@ -64,7 +65,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tienda')),
+      appBar: const AppPageAppBar(title: 'Tienda'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
         children: [

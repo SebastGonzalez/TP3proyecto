@@ -4,22 +4,45 @@ class MyUser {
     required this.uid,
     required this.coins,
     this.username,
+    this.homeCompanionId,
+    this.homeCompanionImagePath,
+    this.createdAt,
   });
 
-  /// UID de [FirebaseAuth] — mismo id del documento en `users`.
+  /// UID de [Firebase Auth] — mismo id del documento en `users`.
   final String uid;
   final int coins;
   final String? username;
+
+  /// Id de `owned_monsters/{id}` mostrado en la home.
+  final String? homeCompanionId;
+
+  /// Ruta de asset para pintar el compañero sin esperar la colección.
+  final String? homeCompanionImagePath;
+
+  /// Fecha de creación del documento en Firestore (`createdAt`).
+  final DateTime? createdAt;
 
   MyUser copyWith({
     String? uid,
     int? coins,
     String? username,
+    String? homeCompanionId,
+    String? homeCompanionImagePath,
+    DateTime? createdAt,
+    bool clearHomeCompanion = false,
   }) {
     return MyUser(
       uid: uid ?? this.uid,
       coins: coins ?? this.coins,
       username: username ?? this.username,
+      homeCompanionId: clearHomeCompanion
+          ? null
+          : (homeCompanionId ?? this.homeCompanionId),
+      homeCompanionImagePath: clearHomeCompanion
+          ? null
+          : (homeCompanionImagePath ?? this.homeCompanionImagePath),
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

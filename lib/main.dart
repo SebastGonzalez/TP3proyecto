@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/router/app_router.dart';
+import 'package:prueba1/core/services/auth_service.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,6 +12,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await AuthService.waitForAuthReady();
   runApp(
     ProviderScope(
       child: const _AppBootstrap(child: MainApp()),
@@ -32,14 +34,30 @@ class _AppBootstrap extends ConsumerWidget {
   }
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends ConsumerWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(userProvider);
+    final router = ref.watch(goRouterProvider);
+
+    if (auth.isLoading) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          brightness: Brightness.light,
+          colorSchemeSeed: Colors.orange,
+        ),
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      routerConfig: app_router,
+      routerConfig: router,
       theme: ThemeData(
         brightness: Brightness.light,
         colorSchemeSeed: Colors.orange,
