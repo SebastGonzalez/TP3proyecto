@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/core/services/auth_service.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
+import 'package:prueba1/core/services/auth_service.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends ConsumerStatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   late TextEditingController _usernameController;
   late TextEditingController _passwordController;
+  late TextEditingController _confirmPasswordController;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -22,36 +23,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.initState();
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
   }
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
- // En login_screen.dart reemplaza tu función _login por esta:
-void _login() async {
+  // Busca la función _register() en signup_screen.dart y reemplázala por esta:
+void _register() async {
   setState(() {
     _isLoading = true;
     _errorMessage = null;
   });
 
+  // Validaciones locales básicas antes de ir a Firebase
   if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-    setState(() {
-      _isLoading = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Nombre de usuario y contraseña son requeridos'), backgroundColor: Colors.red),
-    );
+    _showError('Nombre de usuario y contraseña son requeridos');
+    return;
+  }
+  if (_passwordController.text != _confirmPasswordController.text) {
+    _showError('Las contraseñas no coinciden');
+    return;
+  }
+  if (_usernameController.text.length < 3) {
+    _showError('El nombre de usuario debe tener al menos 3 caracteres');
     return;
   }
 
   final username = _usernameController.text.trim();
 
   try {
-    final user = await AuthService.loginWithUsername(
+    final user = await AuthService.registerWithUsername(
       username: username,
       password: _passwordController.text,
     );
@@ -67,12 +74,7 @@ void _login() async {
       context.go('/home');
     }
   } catch (e) {
-    setState(() {
-      _errorMessage = e.toString();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_errorMessage ?? 'Error desconocido'), backgroundColor: Colors.red),
-    );
+    _showError(e.toString());
   } finally {
     if (mounted) {
       setState(() {
@@ -81,92 +83,21 @@ void _login() async {
     }
   }
 }
+
+// Función auxiliar para no repetir código de errores
+void _showError(String message) {
+  setState(() {
+    _errorMessage = message;
+    _isLoading = false;
+  });
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message), backgroundColor: Colors.red),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Login Screen')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/images/LogoJuego.png',
-                  width: 200,
-                ),
-                const SizedBox(height: 40),
-                TextField(
-                  controller: _usernameController,
-                  enabled: !_isLoading,
-                  decoration: _fieldDecoration.copyWith(
-                    hintText: 'Nombre de usuario',
-                    prefixIcon: const Icon(Icons.person_outline),
-                  ),
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 14),
-                TextField(
-                  controller: _passwordController,
-                  enabled: !_isLoading,
-                  obscureText: true,
-                  decoration: _fieldDecoration.copyWith(
-                    hintText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                  ),
-                  textInputAction: TextInputAction.done,
-                ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('¿No tienes cuenta? '),
-                    TextButton(
-                      onPressed: _isLoading ? null : () => context.go('/signup'),
-                      child: const Text('Registrate aqui'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  InputDecoration get _fieldDecoration {
-    return InputDecoration(
+    final fieldDecoration = InputDecoration(
       filled: true,
       fillColor: Colors.grey.shade100,
       border: OutlineInputBorder(
@@ -184,6 +115,106 @@ void _login() async {
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
+      ),
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Registro'),
+        elevation: 0,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/images/LogoJuego.png',
+                  width: 150,
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'Crear Cuenta',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _usernameController,
+                  enabled: !_isLoading,
+                  decoration: fieldDecoration.copyWith(
+                    hintText: 'Nombre de usuario',
+                    prefixIcon: const Icon(Icons.person_outline),
+                  ),
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _passwordController,
+                  enabled: !_isLoading,
+                  obscureText: true,
+                  decoration: fieldDecoration.copyWith(
+                    hintText: 'Contraseña',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                  ),
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _confirmPasswordController,
+                  enabled: !_isLoading,
+                  obscureText: true,
+                  decoration: fieldDecoration.copyWith(
+                    hintText: 'Confirmar Contraseña',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                  ),
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _register,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Registrarse',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('¿Ya tienes cuenta? '),
+                    TextButton(
+                      onPressed: _isLoading ? null : () => context.go('/login'),
+                      child: const Text('Inicia sesión aquí'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
 import 'package:prueba1/monsters/domain/sacrifice_slot.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_progress_provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
@@ -23,37 +24,42 @@ class SacrificeChallengeScreen extends ConsumerStatefulWidget {
 
 class _SacrificeChallengeScreenState
     extends ConsumerState<SacrificeChallengeScreen> {
-  late List<Monster?> _slots;
+  /// Ids de `owned_monsters/{id}` elegidos por espacio.
+  late List<String?> _slotOwnedIds;
 
   SacrificeChallenge get ch => widget.challenge;
 
   @override
   void initState() {
     super.initState();
-    _slots = List<Monster?>.filled(ch.slotCount, null);
+    _slotOwnedIds = List<String?>.filled(ch.slotCount, null);
   }
 
   @override
   void dispose() {
-    // Al volver a la lista, recargar catálogo y SBC por si cambió Firestore.
     ref.invalidate(monstersProvider);
     ref.invalidate(sacrificeChallengesProvider);
     super.dispose();
   }
 
-  int _usesElsewhere(Monster monster, int excludeSlot) {
-    var n = 0;
-    for (var i = 0; i < _slots.length; i++) {
+  bool _isPickedElsewhere(String ownedId, int excludeSlot) {
+    for (var i = 0; i < _slotOwnedIds.length; i++) {
       if (i == excludeSlot) continue;
-      final p = _slots[i];
-      if (p != null && p.name == monster.name) n++;
+      if (_slotOwnedIds[i] == ownedId) return true;
     }
-    return n;
+    return false;
   }
 
-  bool _availableForSlot(CapturedEntry entry, int slotIndex) {
-    final usedElse = _usesElsewhere(entry.monster, slotIndex);
-    return entry.count - usedElse >= 1;
+  bool _availableForSlot(OwnedMonster entry, int slotIndex) {
+    return !_isPickedElsewhere(entry.id, slotIndex);
+  }
+
+  OwnedMonster? _ownedById(String? id, List<OwnedMonster> captured) {
+    if (id == null) return null;
+    for (final o in captured) {
+      if (o.id == id) return o;
+    }
+    return null;
   }
 
   void _openPicker(int slotIndex) {
@@ -61,7 +67,7 @@ class _SacrificeChallengeScreenState
     final captured = ref.read(capturedMonstersProvider);
     final options = captured
         .where(
-          (e) => need.matches(e.monster) && _availableForSlot(e, slotIndex),
+          (o) => need.matches(o.monster) && _availableForSlot(o, slotIndex),
         )
         .toList();
 
@@ -82,15 +88,14 @@ class _SacrificeChallengeScreenState
           padding: const EdgeInsets.all(12),
           itemCount: options.length,
           itemBuilder: (_, i) {
-            final e = options[i];
-            final free = e.count - _usesElsewhere(e.monster, slotIndex);
+            final o = options[i];
             return ListTile(
-              leading: Image.asset(e.monster.imagePath, width: 48, height: 48),
-              title: Text(e.monster.name),
-              subtitle: Text('${e.monster.rarity.label}  •  Disponibles: $free'),
+              leading: Image.asset(o.monster.imagePath, width: 48, height: 48),
+              title: Text(o.monster.name),
+              subtitle: Text(o.monster.rarity.label),
               onTap: () {
                 setState(() {
-                  _slots[slotIndex] = e.monster;
+                  _slotOwnedIds[slotIndex] = o.id;
                 });
                 Navigator.pop(ctx);
               },
@@ -101,7 +106,7 @@ class _SacrificeChallengeScreenState
     );
   }
 
-  bool get _allFilled => _slots.every((e) => e != null);
+  bool get _allFilled => _slotOwnedIds.every((e) => e != null);
 
   String _emptySlotMessage(SacrificeSlotRequirement need) => switch (need) {
         RaritySlotRequirement(:final rarity) =>
@@ -112,8 +117,10 @@ class _SacrificeChallengeScreenState
 
   bool get _valid {
     if (!_allFilled) return false;
-    for (var i = 0; i < _slots.length; i++) {
-      if (!ch.slots[i].matches(_slots[i]!)) return false;
+    final captured = ref.read(capturedMonstersProvider);
+    for (var i = 0; i < _slotOwnedIds.length; i++) {
+      final owned = _ownedById(_slotOwnedIds[i], captured);
+      if (owned == null || !ch.slots[i].matches(owned.monster)) return false;
     }
     return true;
   }
@@ -129,11 +136,12 @@ class _SacrificeChallengeScreenState
       return;
     }
 
-    final notifier = ref.read(capturedMonstersProvider.notifier);
-    for (final m in _slots) {
-      if (m != null) notifier.removeOne(m);
+    final actions = ref.read(capturedMonstersActionsProvider.notifier);
+    final capture = ref.read(ownedMonstersControllerProvider);
+    for (final ownedId in _slotOwnedIds) {
+      if (ownedId != null) await actions.removeById(ownedId);
     }
-    notifier.add(ch.reward);
+    await capture.capture(ch.reward);
     ref.read(sacrificeProgressProvider.notifier).markCompleted(ch.id);
 
     if (!mounted) return;
@@ -145,6 +153,7 @@ class _SacrificeChallengeScreenState
   @override
   Widget build(BuildContext context) {
     final done = ref.watch(sacrificeProgressProvider).contains(ch.id);
+    final captured = ref.watch(capturedMonstersProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(ch.title)),
@@ -183,7 +192,7 @@ class _SacrificeChallengeScreenState
             const SizedBox(height: 12),
             ...List.generate(ch.slotCount, (i) {
               final requirement = ch.slots[i];
-              final picked = _slots[i];
+              final picked = _ownedById(_slotOwnedIds[i], captured);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Column(
@@ -202,8 +211,8 @@ class _SacrificeChallengeScreenState
                               children: [
                                 Positioned.fill(
                                   child: MonsterCardTile(
-                                    monster: picked,
-                                    rarityColor: picked.rarity.color,
+                                    monster: picked.monster,
+                                    rarityColor: picked.monster.rarity.color,
                                     onTap: () => _openPicker(i),
                                   ),
                                 ),
@@ -213,7 +222,7 @@ class _SacrificeChallengeScreenState
                                   child: IconButton.filledTonal(
                                     icon: const Icon(Icons.close, size: 20),
                                     onPressed: () {
-                                      setState(() => _slots[i] = null);
+                                      setState(() => _slotOwnedIds[i] = null);
                                     },
                                   ),
                                 ),

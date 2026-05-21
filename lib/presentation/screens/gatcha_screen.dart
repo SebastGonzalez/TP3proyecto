@@ -6,10 +6,12 @@ import 'package:prueba1/monsters/domain/gatcha_machine.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
 import 'package:prueba1/monsters/domain/roll_strategy.dart';
-import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
+import 'package:prueba1/presentation/providers/auth_provider.dart';
+import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/gatcha_machines_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
 
 class GatchaScreen extends ConsumerStatefulWidget {
@@ -26,6 +28,7 @@ class _GatchaScreenState extends ConsumerState<GatchaScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.invalidate(monstersProvider);
       ref.invalidate(gatchaMachinesProvider);
+      ref.invalidate(ownedMonstersProvider);
     });
   }
 
@@ -92,6 +95,16 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
 
   Future<void> _onRoll(GatchaMachine machine) async {
     if (_rolling) return;
+
+    final ownerId = ref.read(myUserProvider).value?.uid ??
+        ref.read(userProvider).value?.uid;
+    if (ownerId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Iniciá sesión para tirar la gatcha')),
+      );
+      return;
+    }
+
     if (widget.coins < machine.cost) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Necesitás ${machine.cost} monedas!')),
@@ -110,13 +123,15 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
     // La pantalla no sabe cómo se rolea: delega en la máquina (`rollsPerPull`
     // + `RollStrategy`). Cambiar la mecánica = cambiar la strategy o Firestore.
     final won = machine.rollMany(widget.monsters, _rng);
-    final captured = ref.read(capturedMonstersProvider.notifier);
-    for (final monster in won) {
-      captured.add(monster);
+    final capture = ref.read(ownedMonstersControllerProvider);
+    final created = <Monster>[];
+    for (final catalogMonster in won) {
+      final instance = await capture.capture(catalogMonster);
+      if (instance != null) created.add(instance.monster);
     }
 
     if (!mounted) return;
-    for (final monster in won) {
+    for (final monster in created) {
       await showGatchaReveal(context, monster);
       if (!mounted) return;
     }

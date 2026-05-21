@@ -1,6 +1,8 @@
 import 'package:prueba1/monsters/domain/rarity.dart';
 
 class Monster {
+  /// Id del documento en Firestore (`monsters/{id}`).
+  final String id;
   String name;
   int level;
   Rarity rarity;
@@ -10,7 +12,14 @@ class Monster {
   /// Escala extra en la home (opcional). Si es null, usa [Rarity.homeCompanionScale].
   final double? homeScale;
 
+  /// UID del dueño (`users/{uid}`). Null en el catálogo global; se asigna al capturar.
+  final String? ownerId;
+
+  /// Id del documento en `owned_monsters/{ownedInstanceId}`.
+  final String? ownedInstanceId;
+
   Monster({
+    required this.id,
     required this.name,
     required this.level,
     required this.rarity,
@@ -18,12 +27,41 @@ class Monster {
     required this.imagePath,
     required this.dropWeight,
     this.homeScale,
+    this.ownerId,
+    this.ownedInstanceId,
   });
+
+  Monster copyWith({
+    String? id,
+    String? name,
+    int? level,
+    Rarity? rarity,
+    String? description,
+    String? imagePath,
+    int? dropWeight,
+    double? homeScale,
+    String? ownerId,
+    String? ownedInstanceId,
+  }) {
+    return Monster(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      level: level ?? this.level,
+      rarity: rarity ?? this.rarity,
+      description: description ?? this.description,
+      imagePath: imagePath ?? this.imagePath,
+      dropWeight: dropWeight ?? this.dropWeight,
+      homeScale: homeScale ?? this.homeScale,
+      ownerId: ownerId ?? this.ownerId,
+      ownedInstanceId: ownedInstanceId ?? this.ownedInstanceId,
+    );
+  }
 
   double get homeDisplayScale => homeScale ?? rarity.homeCompanionScale;
 
-  factory Monster.fromFirestore(Map<String, dynamic> data) {
+  factory Monster.fromFirestore(String id, Map<String, dynamic> data) {
     return Monster(
+      id: id,
       name: data['name'] as String,
       level: data['level'] as int,
       rarity: Rarity.fromLabel(data['rarity'] as String?),

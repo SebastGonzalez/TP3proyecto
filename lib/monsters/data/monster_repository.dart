@@ -25,7 +25,7 @@ class MonsterRepository {
   List<Monster> _parseSnapshot(QuerySnapshot<Map<String, dynamic>> snapshot) {
     return [
       for (final doc in snapshot.docs)
-        if (_isActive(doc.data())) Monster.fromFirestore(doc.data()),
+        if (_isActive(doc.data())) Monster.fromFirestore(doc.id, doc.data()),
     ];
   }
 }
