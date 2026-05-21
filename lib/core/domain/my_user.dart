@@ -1,47 +1,41 @@
-import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
-
 /// Perfil del jugador en Firestore (`users/{firebaseAuthUid}`).
 class MyUser {
   const MyUser({
     required this.uid,
     required this.coins,
-    required this.monsters,
     this.username,
   });
 
   /// UID de [FirebaseAuth] — mismo id del documento en `users`.
   final String uid;
   final int coins;
-  final List<CapturedEntry> monsters;
   final String? username;
 
   MyUser copyWith({
     String? uid,
     int? coins,
-    List<CapturedEntry>? monsters,
     String? username,
   }) {
     return MyUser(
       uid: uid ?? this.uid,
       coins: coins ?? this.coins,
-      monsters: monsters ?? this.monsters,
       username: username ?? this.username,
     );
   }
 }
 
-/// Referencia mínima en `users.monsters`: id del doc en `monsters/{monsterId}`.
+/// Formato legado en `users.monsters` (solo para migración a `owned_monsters`).
 class OwnedMonsterStamp {
   const OwnedMonsterStamp({
     required this.monsterId,
     required this.count,
+    this.ownerId,
     this.legacyName,
   });
 
   final String monsterId;
   final int count;
-
-  /// Solo para leer documentos viejos guardados con `name` en lugar de `monsterId`.
+  final String? ownerId;
   final String? legacyName;
 
   factory OwnedMonsterStamp.fromMap(Map<String, dynamic> data) {
@@ -50,17 +44,14 @@ class OwnedMonsterStamp {
       return OwnedMonsterStamp(
         monsterId: id,
         count: (data['count'] as num).toInt(),
+        ownerId: data['ownerId'] as String?,
       );
     }
     return OwnedMonsterStamp(
       monsterId: '',
       count: (data['count'] as num).toInt(),
       legacyName: data['name'] as String?,
+      ownerId: data['ownerId'] as String?,
     );
   }
-
-  Map<String, dynamic> toMap() => {
-        'monsterId': monsterId,
-        'count': count,
-      };
 }

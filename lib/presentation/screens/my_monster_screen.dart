@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/widgets/monster_card_tile.dart';
@@ -31,7 +32,7 @@ class MyMonsterScreen extends ConsumerWidget {
   void _onCompanionLongPress(
     BuildContext context,
     WidgetRef ref,
-    CapturedEntry entry,
+    OwnedMonster entry,
     bool isCompanion,
   ) {
     final notifier = ref.read(homeCompanionProvider.notifier);
@@ -41,7 +42,7 @@ class MyMonsterScreen extends ConsumerWidget {
         SnackBar(content: Text('${entry.monster.name} ya no te acompaña en la home')),
       );
     } else {
-      notifier.setCompanion(entry.monster);
+      notifier.setCompanion(entry.id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${entry.monster.name} te acompañará en la home')),
       );
@@ -51,9 +52,9 @@ class MyMonsterScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final captured = ref.watch(capturedMonstersProvider);
-    final companion = ref.watch(homeCompanionProvider);
-    final unique = captured.length;
-    final total = captured.fold<int>(0, (s, e) => s + e.count);
+    final companionId = ref.watch(homeCompanionProvider);
+    final unique = captured.map((e) => e.monsterId).toSet().length;
+    final total = captured.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -64,7 +65,7 @@ class MyMonsterScreen extends ConsumerWidget {
               tooltip: 'Vaciar colección',
               icon: const Icon(Icons.delete_outline),
               onPressed: () =>
-                  ref.read(capturedMonstersProvider.notifier).clear(),
+                  ref.read(capturedMonstersActionsProvider.notifier).clear(),
             ),
         ],
       ),
@@ -72,7 +73,7 @@ class MyMonsterScreen extends ConsumerWidget {
           ? _EmptyState()
           : Column(
               children: [
-                if (companion == null)
+                if (companionId == null)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                     child: Material(
@@ -129,11 +130,10 @@ class MyMonsterScreen extends ConsumerWidget {
                     itemCount: captured.length,
                     itemBuilder: (context, i) {
                       final entry = captured[i];
-                      final isCompanion = companion?.name == entry.monster.name;
+                      final isCompanion = companionId == entry.id;
                       return MonsterCardTile(
                         monster: entry.monster,
                         rarityColor: entry.monster.rarity.color,
-                        stackCount: entry.count,
                         highlighted: isCompanion,
                         onTap: () => context.push(
                           '/details',

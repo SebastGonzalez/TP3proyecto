@@ -21,5 +21,17 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    match /owned_monsters/{ownedId} {
+      allow read: if request.auth != null
+        && resource.data.ownerId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.monsterId is string
+        && request.resource.data.name is string;
+      allow delete: if request.auth != null
+        && resource.data.ownerId == request.auth.uid;
+      allow update: if false;
+    }
   }
 }

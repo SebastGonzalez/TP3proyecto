@@ -1,57 +1,41 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
-import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 
-/// Una entrada en la colección del jugador: el monstruo capturado y cuántas
-/// veces lo obtuvo (para mostrar duplicados como "x2", "x3", etc.).
-class CapturedEntry {
-  final Monster monster;
-  final int count;
-
-  const CapturedEntry({required this.monster, required this.count});
-
-  CapturedEntry copyWith({Monster? monster, int? count}) => CapturedEntry(
-        monster: monster ?? this.monster,
-        count: count ?? this.count,
+/// Colección del jugador: una entrada por documento en `owned_monsters`.
+final capturedMonstersProvider = Provider<List<OwnedMonster>>((ref) {
+  return ref.watch(ownedMonstersProvider).when(
+        data: (list) => list,
+        loading: () => const [],
+        error: (_, __) => const [],
       );
-}
+});
 
-/// Colección del jugador. Con sesión activa persiste en `users/{uid}.monsters`.
-class CapturedMonstersNotifier extends Notifier<List<CapturedEntry>> {
+/// Crea / elimina instancias en Firestore.
+class CapturedMonstersNotifier extends Notifier<void> {
   @override
-  List<CapturedEntry> build() {
-    ref.listen(myUserProvider, (_, next) {
-      next.whenData((user) {
-        state = user?.monsters ?? const [];
-      });
-    });
-    return ref.watch(myUserMonstersProvider);
+  void build() {}
+
+  Future<void> add(Monster catalogMonster) async {
+    await ref.read(ownedMonstersControllerProvider).capture(catalogMonster);
   }
 
-  void add(Monster monster) {
-    ref.read(myUserProvider.notifier).addMonster(monster);
-  }
-
-  /// Removes one copy of [monster] from the collection (for sacrifices / SBC).
-  void removeOne(Monster monster) {
-    ref.read(myUserProvider.notifier).removeOneMonster(monster);
-    final monsters = ref.read(myUserProvider).value?.monsters ?? const [];
-    final companion = ref.read(homeCompanionProvider);
-    if (companion?.id != monster.id) return;
-    final stillOwned = monsters.any((e) => e.monster.id == monster.id);
-    if (!stillOwned) {
+  Future<void> removeById(String ownedInstanceId) async {
+    if (ref.read(homeCompanionProvider) == ownedInstanceId) {
       ref.read(homeCompanionProvider.notifier).clear();
     }
+    await ref.read(ownedMonstersControllerProvider).remove(ownedInstanceId);
   }
 
-  void clear() {
-    ref.read(myUserProvider.notifier).clearMonsters();
+  Future<void> clear() async {
+    await ref.read(ownedMonstersControllerProvider).clearAll();
     ref.read(homeCompanionProvider.notifier).clear();
   }
 }
 
-final capturedMonstersProvider =
-    NotifierProvider<CapturedMonstersNotifier, List<CapturedEntry>>(
+final capturedMonstersActionsProvider =
+    NotifierProvider<CapturedMonstersNotifier, void>(
   CapturedMonstersNotifier.new,
 );
