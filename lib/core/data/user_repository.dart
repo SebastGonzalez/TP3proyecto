@@ -6,7 +6,9 @@ import 'package:prueba1/core/domain/my_user.dart';
 /// ## Colección `users`
 /// - **Documento:** `{firebaseAuthUid}`
 /// - **Campos:** `username`, `coins`, `homeCompanionId`, `homeCompanionImagePath`,
-///   `createdAt`, `updatedAt` (`homeFacing` solo en catálogo `monsters`)
+///   `homeCompanionFacing`, `homeCompanionScale`, `homeCompanionBackgroundColor`
+///   (caché visual de home; fuente de verdad en catálogo `monsters`),
+///   `createdAt`, `updatedAt`
 ///
 /// Los monstruos capturados viven en `owned_monsters` (ver [OwnedMonsterRepository]).
 class UserRepository {
@@ -88,17 +90,23 @@ class UserRepository {
     });
   }
 
-  /// Compañero en la home: id en `owned_monsters` + asset para mostrar al instante.
+  /// Compañero en la home: id + snapshot visual para el primer frame sin esperar catálogo.
   Future<void> saveHomeCompanion(
     String uid, {
     String? ownedInstanceId,
     String? imagePath,
+    String? homeFacing,
+    double? homeScale,
+    int? homeBackgroundColor,
   }) async {
     final trimmedId = ownedInstanceId?.trim();
     if (trimmedId == null || trimmedId.isEmpty) {
       await _doc(uid).set({
         'homeCompanionId': FieldValue.delete(),
         'homeCompanionImagePath': FieldValue.delete(),
+        'homeCompanionFacing': FieldValue.delete(),
+        'homeCompanionScale': FieldValue.delete(),
+        'homeCompanionBackgroundColor': FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       return;
@@ -107,6 +115,11 @@ class UserRepository {
       'homeCompanionId': trimmedId,
       if (imagePath != null && imagePath.isNotEmpty)
         'homeCompanionImagePath': imagePath,
+      if (homeFacing != null && homeFacing.isNotEmpty)
+        'homeCompanionFacing': homeFacing,
+      if (homeScale != null) 'homeCompanionScale': homeScale,
+      if (homeBackgroundColor != null)
+        'homeCompanionBackgroundColor': homeBackgroundColor,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -126,6 +139,10 @@ class UserRepository {
     final username = data['username'] as String?;
     final homeCompanionId = data['homeCompanionId'] as String?;
     final homeCompanionImagePath = data['homeCompanionImagePath'] as String?;
+    final homeCompanionFacing = data['homeCompanionFacing'] as String?;
+    final homeCompanionScale = (data['homeCompanionScale'] as num?)?.toDouble();
+    final homeCompanionBackgroundColor =
+        (data['homeCompanionBackgroundColor'] as num?)?.toInt();
     final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
     return MyUser(
       uid: uid,
@@ -133,6 +150,9 @@ class UserRepository {
       username: username,
       homeCompanionId: homeCompanionId,
       homeCompanionImagePath: homeCompanionImagePath,
+      homeCompanionFacing: homeCompanionFacing,
+      homeCompanionScale: homeCompanionScale,
+      homeCompanionBackgroundColor: homeCompanionBackgroundColor,
       createdAt: createdAt,
     );
   }

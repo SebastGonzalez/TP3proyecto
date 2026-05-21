@@ -4,6 +4,8 @@ import 'package:prueba1/core/router/app_router.dart';
 import 'package:prueba1/core/services/auth_service.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -30,6 +32,13 @@ class _AppBootstrap extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(authUsernameBootstrapProvider);
     ref.watch(myUserProvider);
+
+    final authUser = ref.watch(userProvider).value;
+    if (authUser != null) {
+      ref.watch(monstersProvider);
+      ref.watch(ownedMonstersProvider);
+    }
+
     return child;
   }
 }

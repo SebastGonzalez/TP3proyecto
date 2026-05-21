@@ -6,6 +6,9 @@ class MyUser {
     this.username,
     this.homeCompanionId,
     this.homeCompanionImagePath,
+    this.homeCompanionFacing,
+    this.homeCompanionScale,
+    this.homeCompanionBackgroundColor,
     this.createdAt,
   });
 
@@ -20,6 +23,15 @@ class MyUser {
   /// Ruta de asset para pintar el compañero sin esperar la colección.
   final String? homeCompanionImagePath;
 
+  /// Caché de visual en home: `"left"` | `"right"` (desde catálogo al elegir compañero).
+  final String? homeCompanionFacing;
+
+  /// Caché de escala en home (`monsters.homeScale` o rareza).
+  final double? homeCompanionScale;
+
+  /// Caché de fondo en home (ARGB, ver [Monster.homeDisplayBackgroundColor]).
+  final int? homeCompanionBackgroundColor;
+
   /// Fecha de creación del documento en Firestore (`createdAt`).
   final DateTime? createdAt;
 
@@ -29,6 +41,9 @@ class MyUser {
     String? username,
     String? homeCompanionId,
     String? homeCompanionImagePath,
+    String? homeCompanionFacing,
+    double? homeCompanionScale,
+    int? homeCompanionBackgroundColor,
     DateTime? createdAt,
     bool clearHomeCompanion = false,
   }) {
@@ -42,6 +57,16 @@ class MyUser {
       homeCompanionImagePath: clearHomeCompanion
           ? null
           : (homeCompanionImagePath ?? this.homeCompanionImagePath),
+      homeCompanionFacing: clearHomeCompanion
+          ? null
+          : (homeCompanionFacing ?? this.homeCompanionFacing),
+      homeCompanionScale: clearHomeCompanion
+          ? null
+          : (homeCompanionScale ?? this.homeCompanionScale),
+      homeCompanionBackgroundColor: clearHomeCompanion
+          ? null
+          : (homeCompanionBackgroundColor ??
+              this.homeCompanionBackgroundColor),
       createdAt: createdAt ?? this.createdAt,
     );
   }
