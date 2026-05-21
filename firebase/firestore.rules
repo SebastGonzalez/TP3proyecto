@@ -12,6 +12,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    /// Catálogo de rarezas (`monsters.rarity` = campo `label`). Editar en consola.
+    match /monsters_rarity/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /gatcha_machines/{docId} {
       allow read: if true;
       allow write: if false;

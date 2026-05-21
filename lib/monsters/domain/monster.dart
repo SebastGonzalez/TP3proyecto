@@ -93,12 +93,16 @@ class Monster {
   String get homeFacingLabel =>
       homeFacing == HomeCompanionSide.right ? 'right' : 'left';
 
-  factory Monster.fromFirestore(String id, Map<String, dynamic> data) {
+  factory Monster.fromFirestore(
+    String id,
+    Map<String, dynamic> data, {
+    required RarityCatalog rarities,
+  }) {
     return Monster(
       id: id,
       name: data['name'] as String,
       level: data['level'] as int,
-      rarity: Rarity.fromLabel(data['rarity'] as String?),
+      rarity: rarities.byLabel(data['rarity'] as String?),
       description: data['description'] as String,
       imagePath: data['imagePath'] as String,
       dropWeight: data['dropWeight'] as int,

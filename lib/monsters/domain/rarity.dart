@@ -1,65 +1,102 @@
 import 'package:flutter/material.dart';
 
-/// Rarezas conocidas. Una sola fuente de verdad: agregar una rareza
-/// nueva = sumar un valor al enum y listo, el resto del código (UI,
-/// strategies, badges, sort) la consulta por acá y se adapta solo.
-///
-/// `label` es el string que se persiste en Firestore (compat con docs
-/// que ya tengas cargados). `color` es el color visual asociado.
-/// `weight` da un orden canónico para mostrar y comparar (mayor =
-/// más raro).
-enum Rarity {
-  common(
-    label: 'Common',
-    color: Color(0xFF26C6DA),
-    weight: 0,
-  ),
-  rare(
-    label: 'Rare',
-    color: Color(0xFF7C4DFF),
-    weight: 1,
-  ),
-  legendary(
-    label: 'Legendary',
-    color: Color(0xFFFFB300),
-    weight: 2,
-  ),
-  fusion(
-    label: 'Fusion',
-    color: Color.fromARGB(255, 14, 173, 27),
-    weight: 3,
-  );
-
-
+/// Rareza definida en Firestore (`monsters_rarity/{id}`). Los monstruos guardan [label]
+/// en el campo `rarity` (ej. `"Common"`).
+class Rarity {
   const Rarity({
+    required this.id,
     required this.label,
     required this.color,
     required this.weight,
+    required this.homeCompanionScale,
+    required this.isAtLeastRare,
   });
 
+  final String id;
   final String label;
   final Color color;
   final int weight;
+  final double homeCompanionScale;
 
-  /// Parsea desde el string que viene de Firestore. Si no matchea
-  /// ninguna conocida, cae a `Common` (defensivo: que no rompa la app
-  /// por un dato inesperado).
-  static Rarity fromLabel(String? label) => values.firstWhere(
-        (r) => r.label == label,
-        orElse: () => Rarity.common,
-      );
+  /// Efectos visuales “no común” (reveal, etc.): `weight >=` rareza `Rare`.
+  final bool isAtLeastRare;
 
-  /// Para condiciones tipo "muestra rayos / shine sólo si no es Common".
-  /// Más legible que `monster.rarity != Rarity.common` y más
-  /// extensible (hoy hay 1 nivel "no común", mañana puede haber más).
-  bool get isAtLeastRare => weight >= Rarity.rare.weight;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is Rarity && other.id == id;
 
-  /// Multiplicador de tamaño del compañero en la home (sprites con mucho
-  /// padding transparente suelen necesitar valores más altos).
-  double get homeCompanionScale => switch (this) {
-        Rarity.common => 1.0,
-        Rarity.rare => 1.08,
-        Rarity.legendary => 1.22,
-        Rarity.fusion => 1.28,
-      };
+  @override
+  int get hashCode => id.hashCode;
+}
+
+/// Catálogo de rarezas cargado desde Firestore.
+class RarityCatalog {
+  RarityCatalog(List<Rarity> rarities)
+      : rarities = List.unmodifiable(
+          [...rarities]..sort((a, b) => a.weight.compareTo(b.weight)),
+        ),
+        _byLabel = {
+          for (final r in rarities) r.label: r,
+        },
+        _byId = {
+          for (final r in rarities) r.id: r,
+        } {
+    final rareWeight = _byLabel['Rare']?.weight ?? 1;
+    _rareMinWeight = rareWeight;
+  }
+
+  final List<Rarity> rarities;
+  final Map<String, Rarity> _byLabel;
+  final Map<String, Rarity> _byId;
+  late final int _rareMinWeight;
+
+  Rarity get fallback => _byLabel['Common'] ?? rarities.first;
+
+  Rarity byLabel(String? label) {
+    if (label == null || label.isEmpty) return fallback;
+    return _byLabel[label] ?? fallback;
+  }
+
+  Rarity? byId(String? id) {
+    if (id == null || id.isEmpty) return null;
+    return _byId[id];
+  }
+
+  bool hasLabel(String label) => _byLabel.containsKey(label);
+
+  bool isAtLeastRare(Rarity rarity) => rarity.weight >= _rareMinWeight;
+
+  /// Defaults si la colección `monsters_rarity` está vacía (misma data que el enum anterior).
+  static RarityCatalog defaults() {
+    const raw = [
+      (id: 'common', label: 'Common', color: 0xFF26C6DA, weight: 0, scale: 1.0),
+      (id: 'rare', label: 'Rare', color: 0xFF7C4DFF, weight: 1, scale: 1.08),
+      (
+        id: 'legendary',
+        label: 'Legendary',
+        color: 0xFFFFB300,
+        weight: 2,
+        scale: 1.22,
+      ),
+      (
+        id: 'fusion',
+        label: 'Fusion',
+        color: 0xFF0EAD1B,
+        weight: 3,
+        scale: 1.28,
+      ),
+    ];
+    final rareWeight = raw.firstWhere((e) => e.label == 'Rare').weight;
+    return RarityCatalog([
+      for (final e in raw)
+        Rarity(
+          id: e.id,
+          label: e.label,
+          color: Color(e.color),
+          weight: e.weight,
+          homeCompanionScale: e.scale,
+          isAtLeastRare: e.weight >= rareWeight,
+        ),
+    ]);
+  }
 }

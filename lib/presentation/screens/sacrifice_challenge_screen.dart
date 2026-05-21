@@ -141,7 +141,7 @@ class _SacrificeChallengeScreenState
       if (ownedId != null) await actions.removeById(ownedId);
     }
     await capture.capture(ch.reward);
-    ref.read(sacrificeProgressProvider.notifier).markCompleted(ch.id);
+    await ref.read(sacrificeProgressProvider.notifier).markCompleted(ch.id);
 
     if (!mounted) return;
     await showGatchaReveal(context, ch.reward);

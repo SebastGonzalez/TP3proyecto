@@ -8,6 +8,7 @@ import 'package:prueba1/core/domain/my_user.dart';
 /// - **Campos:** `username`, `coins`, `homeCompanionId`, `homeCompanionImagePath`,
 ///   `homeCompanionFacing`, `homeCompanionScale`, `homeCompanionBackgroundColor`
 ///   (caché visual de home; fuente de verdad en catálogo `monsters`),
+///   `completedSbcIds` (array de ids en `sbc`, desafíos hechos una sola vez),
 ///   `createdAt`, `updatedAt`
 ///
 /// Los monstruos capturados viven en `owned_monsters` (ver [OwnedMonsterRepository]).
@@ -124,6 +125,16 @@ class UserRepository {
     }, SetOptions(merge: true));
   }
 
+  /// Marca un desafío SBC como completado (no se puede repetir).
+  Future<void> markSbcCompleted(String uid, String sbcId) async {
+    final trimmed = sbcId.trim();
+    if (trimmed.isEmpty) return;
+    await _doc(uid).set({
+      'completedSbcIds': FieldValue.arrayUnion([trimmed]),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   Future<void> saveUser(MyUser user) async {
     await _doc(user.uid).set({
       if (user.username != null) 'username': user.username,
@@ -153,7 +164,16 @@ class UserRepository {
       homeCompanionFacing: homeCompanionFacing,
       homeCompanionScale: homeCompanionScale,
       homeCompanionBackgroundColor: homeCompanionBackgroundColor,
+      completedSbcIds: _parseCompletedSbcIds(data['completedSbcIds']),
       createdAt: createdAt,
     );
+  }
+
+  static List<String> _parseCompletedSbcIds(dynamic raw) {
+    if (raw is! List) return const [];
+    return [
+      for (final item in raw)
+        if (item is String && item.isNotEmpty) item,
+    ];
   }
 }

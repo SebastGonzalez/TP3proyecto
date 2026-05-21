@@ -35,7 +35,10 @@ class SacrificeRepository {
 
   final FirebaseFirestore _db;
 
-  Future<SacrificeChallengesState> loadChallenges(List<Monster> catalog) async {
+  Future<SacrificeChallengesState> loadChallenges(
+    List<Monster> catalog, {
+    required RarityCatalog rarities,
+  }) async {
     final snapshot = await _db
         .collection('sbc')
         .where('active', isEqualTo: true)
@@ -46,7 +49,7 @@ class SacrificeRepository {
 
     for (final doc in snapshot.docs) {
       final data = doc.data();
-      final challenge = _tryBuild(doc.id, data, catalog);
+      final challenge = _tryBuild(doc.id, data, catalog, rarities);
       if (challenge == null) continue;
       final order = (data['sortOrder'] as num?)?.toInt() ?? 0;
       mapped.add((ch: challenge, order: order));
@@ -68,6 +71,7 @@ class SacrificeRepository {
     String docId,
     Map<String, dynamic> data,
     List<Monster> catalog,
+    RarityCatalog rarities,
   ) {
     final rewardName = data['rewardName'] as String?;
     if (rewardName == null || rewardName.trim().isEmpty) return null;
@@ -83,7 +87,7 @@ class SacrificeRepository {
 
     final rawSlots = data['slots'];
     if (rawSlots is! List || rawSlots.isEmpty) return null;
-    final slots = _parseSlotsList(rawSlots, catalog);
+    final slots = _parseSlotsList(rawSlots, catalog, rarities);
     if (slots == null || slots.isEmpty) return null;
 
     final stableId = (data['id'] as String?)?.trim();
@@ -102,10 +106,11 @@ class SacrificeRepository {
   List<SacrificeSlotRequirement>? _parseSlotsList(
     List<dynamic> raw,
     List<Monster> catalog,
+    RarityCatalog rarities,
   ) {
     final slots = <SacrificeSlotRequirement>[];
     for (final e in raw) {
-      final slot = _parseOneSlot(e, catalog);
+      final slot = _parseOneSlot(e, catalog, rarities);
       if (slot == null) return null;
       slots.add(slot);
     }
@@ -115,12 +120,13 @@ class SacrificeRepository {
   SacrificeSlotRequirement? _parseOneSlot(
     dynamic raw,
     List<Monster> catalog,
+    RarityCatalog rarities,
   ) {
     if (raw is Map) {
       final type = (raw['type'] as String?)?.toLowerCase().trim();
       if (type == 'rarity' || raw.containsKey('rarity')) {
         final value = raw['value'] ?? raw['rarity'];
-        return RaritySlotRequirement(Rarity.fromLabel(value?.toString()));
+        return RaritySlotRequirement(rarities.byLabel(value?.toString()));
       }
       if (type == 'monster' ||
           type == 'name' ||
@@ -138,8 +144,8 @@ class SacrificeRepository {
     if (raw is String) {
       final label = raw.trim();
       if (label.isEmpty) return null;
-      if (_isRarityLabel(label)) {
-        return RaritySlotRequirement(Rarity.fromLabel(label));
+      if (_isRarityLabel(label, rarities)) {
+        return RaritySlotRequirement(rarities.byLabel(label));
       }
       if (_monsterExists(label, catalog)) {
         return MonsterNameSlotRequirement(label);
@@ -150,8 +156,8 @@ class SacrificeRepository {
     return null;
   }
 
-  bool _isRarityLabel(String label) =>
-      Rarity.values.any((r) => r.label == label);
+  bool _isRarityLabel(String label, RarityCatalog rarities) =>
+      rarities.hasLabel(label);
 
   bool _monsterExists(String name, List<Monster> catalog) =>
       catalog.any((m) => m.name == name);
