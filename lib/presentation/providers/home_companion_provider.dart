@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
@@ -98,11 +99,13 @@ class HomeCompanionView {
     required this.imagePath,
     this.side = HomeCompanionSide.left,
     this.scale = 1,
+    this.backgroundColor,
   });
 
   final String imagePath;
   final HomeCompanionSide side;
   final double scale;
+  final Color? backgroundColor;
 }
 
 /// Resuelve imagen y lado del compañero. `homeFacing` siempre del catálogo
@@ -120,6 +123,7 @@ final homeCompanionViewProvider = Provider<HomeCompanionView?>((ref) {
         imagePath: o.monster.imagePath,
         side: o.monster.homeFacing,
         scale: o.monster.homeDisplayScale,
+        backgroundColor: o.monster.homeDisplayBackgroundColor,
       );
     }
   }
@@ -136,6 +140,7 @@ final homeCompanionViewProvider = Provider<HomeCompanionView?>((ref) {
           imagePath: cached,
           side: m.homeFacing,
           scale: m.homeDisplayScale,
+          backgroundColor: m.homeDisplayBackgroundColor,
         );
       }
     }
