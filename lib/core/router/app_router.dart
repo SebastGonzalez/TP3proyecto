@@ -79,8 +79,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/details',
-            builder: (context, state) =>
-                MonsterDetails(monster: state.extra as Monster),
+            builder: (context, state) {
+              final extra = state.extra;
+              if (extra is Monster) {
+                return MonsterDetails(monster: extra);
+              }
+              throw ArgumentError(
+                'Ruta /details requiere un Monster en state.extra',
+              );
+            },
           ),
           GoRoute(
             path: '/settings',

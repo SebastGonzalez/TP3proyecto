@@ -1,27 +1,73 @@
 import 'package:flutter/material.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/presentation/providers/home_companion_provider.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 
-class MonsterDetails extends StatelessWidget {
-  final Monster monster;
-
+class MonsterDetails extends ConsumerWidget {
   const MonsterDetails({super.key, required this.monster});
 
-   @override
+  final Monster monster;
+
+  bool get _isOwnedInstance =>
+      monster.ownedInstanceId != null && monster.ownedInstanceId!.isNotEmpty;
+
+  Future<void> _toggleHomeCompanion(BuildContext context, WidgetRef ref) async {
+    final ownedId = monster.ownedInstanceId!;
+    final notifier = ref.read(homeCompanionProvider.notifier);
+    final isCompanion = ref.read(homeCompanionProvider) == ownedId;
+
+    if (isCompanion) {
+      await notifier.clear();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${monster.name} ya no te acompaña en la home'),
+        ),
+      );
+    } else {
+      await notifier.setCompanion(ownedId, monster: monster);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${monster.name} te acompañará en la home'),
+        ),
+      );
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ownedId = monster.ownedInstanceId;
+    final isCompanion =
+        ownedId != null && ref.watch(homeCompanionProvider) == ownedId;
+
     return Scaffold(
-      appBar: AppPageAppBar(title: monster.name),
-      body: _DetailView(monster: monster,),
+      appBar: AppPageAppBar(
+        title: monster.name,
+        actions: [
+          if (_isOwnedInstance)
+            IconButton(
+              tooltip: isCompanion
+                  ? 'Quitar compañero de la home'
+                  : 'Elegir compañero en la home',
+              onPressed: () => _toggleHomeCompanion(context, ref),
+              icon: Icon(
+                isCompanion ? Icons.star_rounded : Icons.star_outline_rounded,
+                color: isCompanion ? Colors.amber.shade700 : null,
+              ),
+            ),
+        ],
+      ),
+      body: _DetailView(monster: monster),
     );
   }
 }
 
 class _DetailView extends StatelessWidget {
-  final Monster monster;
+  const _DetailView({required this.monster});
 
-  const _DetailView({super.key, required this.monster});
+  final Monster monster;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +78,6 @@ class _DetailView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Imagen con fondo degradado
           Container(
             height: 320,
             decoration: BoxDecoration(
@@ -40,7 +85,7 @@ class _DetailView extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  rarityColor.withOpacity(0.15),
+                  rarityColor.withValues(alpha: 0.15),
                   Colors.transparent,
                 ],
               ),
@@ -54,23 +99,24 @@ class _DetailView extends StatelessWidget {
               ),
             ),
           ),
-
-          // Info card
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-                // Rarity badge + Tier
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: rarityColor.withOpacity(0.12),
+                        color: rarityColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: rarityColor.withOpacity(0.4)),
+                        border: Border.all(
+                          color: rarityColor.withValues(alpha: 0.4),
+                        ),
                       ),
                       child: Text(
                         monster.rarity.label.toUpperCase(),
@@ -92,10 +138,7 @@ class _DetailView extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-
-                // Divider con label
                 Row(
                   children: [
                     Text(
@@ -111,10 +154,7 @@ class _DetailView extends StatelessWidget {
                     Expanded(child: Divider(color: Colors.grey.shade300)),
                   ],
                 ),
-
                 const SizedBox(height: 12),
-
-                // Descripción
                 Text(
                   monster.description,
                   style: textTheme.bodyMedium?.copyWith(

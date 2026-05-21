@@ -58,10 +58,7 @@ class _MyMonsterScreenState extends ConsumerState<MyMonsterScreen> {
         SnackBar(content: Text('${entry.monster.name} ya no te acompaña en la home')),
       );
     } else {
-      await notifier.setCompanion(
-        entry.id,
-        imagePath: entry.monster.imagePath,
-      );
+      await notifier.setCompanion(entry.id, monster: entry.monster);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${entry.monster.name} te acompañará en la home')),
