@@ -7,6 +7,7 @@ class OwnedMonster {
     required this.ownerId,
     required this.monsterId,
     required this.monster,
+    this.capturedAt,
   });
 
   /// Id del documento en `owned_monsters`.
@@ -20,4 +21,7 @@ class OwnedMonster {
 
   /// Datos del catálogo + [ownerId] y [Monster.ownedInstanceId] = [id].
   final Monster monster;
+
+  /// Momento de captura (`owned_monsters.createdAt`). Null en docs legacy.
+  final DateTime? capturedAt;
 }

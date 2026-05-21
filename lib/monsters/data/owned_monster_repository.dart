@@ -43,6 +43,7 @@ class OwnedMonsterRepository {
       'ownerId': ownerId,
       'monsterId': monsterId,
       'name': template.name,
+      'createdAt': Timestamp.now(),
     }, template);
   }
 
@@ -139,8 +140,22 @@ class OwnedMonsterRepository {
       if (template == null) continue;
       list.add(_fromDoc(doc.id, data, template));
     }
-    list.sort((a, b) => a.id.compareTo(b.id));
+    list.sort(_compareByNewestFirst);
     return list;
+  }
+
+  int _compareByNewestFirst(OwnedMonster a, OwnedMonster b) {
+    final aAt = a.capturedAt;
+    final bAt = b.capturedAt;
+    if (aAt != null && bAt != null) {
+      final byDate = bAt.compareTo(aAt);
+      if (byDate != 0) return byDate;
+    } else if (aAt != null) {
+      return -1;
+    } else if (bAt != null) {
+      return 1;
+    }
+    return b.id.compareTo(a.id);
   }
 
   OwnedMonster _fromDoc(
@@ -157,7 +172,13 @@ class OwnedMonsterRepository {
         ownerId: ownerId,
         ownedInstanceId: docId,
       ),
+      capturedAt: _parseCreatedAt(data['createdAt']),
     );
+  }
+
+  DateTime? _parseCreatedAt(dynamic raw) {
+    if (raw is Timestamp) return raw.toDate();
+    return null;
   }
 
   Map<String, dynamic> _newDocFields({
