@@ -1,75 +1,93 @@
 import 'package:flutter/material.dart';
 
+/// Una entrada navegable del menú lateral.
 class MenuItem {
+  const MenuItem({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.route,
+  });
+
   final String title;
-  final String description;
+  final String subtitle;
   final IconData icon;
   final String route;
-  
-
-  MenuItem({required this.title, required this.description, required this.icon, required this.route});
-
-
-  List<MenuItem> getMenuItems() {
-    return menuItems;
-  }
 }
 
-final List<MenuItem> menuItems = [
-  /*
-  MenuItem(
-    title: 'Profile',
-    description: 'View your profile',
-    icon: Icons.person,
-    route: '/profile',
+/// Grupo de entradas bajo un mismo título en el drawer.
+class MenuSection {
+  const MenuSection({
+    required this.label,
+    required this.items,
+  });
+
+  final String label;
+  final List<MenuItem> items;
+}
+
+/// Definición central del menú: una sola fuente de verdad por sección.
+const List<MenuSection> appMenuSections = [
+  MenuSection(
+    label: 'COLECCIÓN',
+    items: [
+      MenuItem(
+        title: 'Mis monstruos',
+        subtitle: 'Monstruos que capturaste',
+        icon: Icons.pets,
+        route: '/mymonsters',
+      ),
+      MenuItem(
+        title: 'Pokédex',
+        subtitle: 'Catálogo completo',
+        icon: Icons.menu_book_outlined,
+        route: '/pokedex',
+      ),
+    ],
   ),
-  */
-  MenuItem(
-    title: 'My Monsters',
-    description: 'View your monsters',
-    icon: Icons.pets,
-    route: '/mymonsters',
+  MenuSection(
+    label: 'AVENTURA',
+    items: [
+      MenuItem(
+        title: 'Gatcha',
+        subtitle: 'Invocar nuevos monstruos',
+        icon: Icons.casino_outlined,
+        route: '/gatcha',
+      ),
+      MenuItem(
+        title: 'Fusión',
+        subtitle: 'Sacrificios y recompensas',
+        icon: Icons.auto_awesome_outlined,
+        route: '/sacrifice',
+      ),
+      MenuItem(
+        title: 'Minijuego',
+        subtitle: 'Ganá monedas jugando',
+        icon: Icons.videogame_asset_outlined,
+        route: '/game',
+      ),
+    ],
   ),
-  MenuItem(
-    title: 'Pokedex',
-    description: 'Go to the pokedex',
-    icon: Icons.book,
-    route: '/pokedex',
-  ),
-  MenuItem(
-    title: 'Gatcha',
-    description: 'Summon new monsters',
-    icon: Icons.casino,
-    route: '/gatcha',
-  ),
-  MenuItem(
-    title: 'Fusion',
-    description: 'Sacrifice monsters for rewards',
-    icon: Icons.adf_scanner,
-    route: '/sacrifice',
-  ),
-  MenuItem(
-    title: 'Market',
-    description: 'Buy and sell Monsters',
-    icon: Icons.shopping_bag,
-    route: '/market',
-  ),
-  MenuItem(
-    title: 'Game',
-    description: 'Play mini game to earn rewards',
-    icon: Icons.videogame_asset,
-    route: '/game',
-  ),
-  MenuItem(
-    title: 'Shop',
-    description: 'Buy coins and skins',
-    icon: Icons.shopping_cart,
-    route: '/shop',
-  ),
-  MenuItem(
-    title: 'Settings',
-    description: 'Adjust your preferences',
-    icon: Icons.settings,
-    route: '/settings',
+  MenuSection(
+    label: 'ECONOMÍA',
+    items: [
+      MenuItem(
+        title: 'Mercado',
+        subtitle: 'Comprar y vender',
+        icon: Icons.storefront_outlined,
+        route: '/market',
+      ),
+      MenuItem(
+        title: 'Tienda',
+        subtitle: 'Monedas y mejoras',
+        icon: Icons.shopping_cart_outlined,
+        route: '/shop',
+      ),
+    ],
   ),
 ];
+
+/// Lista plana (útil si algún código legacy la necesita).
+List<MenuItem> get allMenuItems => [
+      for (final section in appMenuSections) ...section.items,
+    ];

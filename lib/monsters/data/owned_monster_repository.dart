@@ -10,6 +10,9 @@ import 'package:prueba1/monsters/domain/monster.dart';
 /// - `monsterId` (string): id en `monsters/{monsterId}`
 /// - `name` (string): nombre del catálogo (solo lectura humana en consola)
 /// - `createdAt` (timestamp, server)
+///
+/// `homeFacing` / `homeScale` viven solo en `monsters`; la app los aplica al
+/// armar [OwnedMonster] desde el catálogo.
 class OwnedMonsterRepository {
   OwnedMonsterRepository({FirebaseFirestore? firestore})
       : _db = firestore ?? FirebaseFirestore.instance;

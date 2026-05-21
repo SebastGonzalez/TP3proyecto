@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
+import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/core/services/auth_service.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -64,6 +65,11 @@ void _register() async {
     );
 
     if (user != null && mounted) {
+      await ref.read(userRepositoryProvider).createUser(
+            uid: user.uid,
+            username: username,
+          );
+      ref.invalidate(myUserProvider);
       setLoggedInUsername(ref, username);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // 2. Importamos tu provider de monedas
@@ -143,11 +144,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[900],
-      appBar: AppBar(
-        title: const Text('X Flip - MiniGame', style: TextStyle(color: Colors.white)),
+      appBar: const AppPageAppBar(
+        title: 'X Flip - MiniGame',
         backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

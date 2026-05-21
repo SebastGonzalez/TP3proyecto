@@ -12,6 +12,7 @@ import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/gatcha_machines_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
 
 class GatchaScreen extends ConsumerStatefulWidget {
@@ -26,7 +27,7 @@ class _GatchaScreenState extends ConsumerState<GatchaScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.invalidate(monstersProvider);
+      refreshMonstersCatalog(ref);
       ref.invalidate(gatchaMachinesProvider);
       ref.invalidate(ownedMonstersProvider);
     });
@@ -39,7 +40,7 @@ class _GatchaScreenState extends ConsumerState<GatchaScreen> {
     final machinesAsync = ref.watch(gatchaMachinesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Gatcha Machines')),
+      appBar: const AppPageAppBar(title: 'Gatcha Machines'),
       body: monstersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error cargando monstruos: $e')),
@@ -234,7 +235,7 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
                   style: const TextStyle(color: Colors.redAccent),
                 ),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
           ],
         ),
       ],

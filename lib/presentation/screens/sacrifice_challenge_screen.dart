@@ -5,8 +5,8 @@ import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
 import 'package:prueba1/monsters/domain/sacrifice_slot.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
-import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_progress_provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
@@ -37,7 +37,6 @@ class _SacrificeChallengeScreenState
 
   @override
   void dispose() {
-    ref.invalidate(monstersProvider);
     ref.invalidate(sacrificeChallengesProvider);
     super.dispose();
   }
@@ -156,7 +155,7 @@ class _SacrificeChallengeScreenState
     final captured = ref.watch(capturedMonstersProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(ch.title)),
+      appBar: AppPageAppBar(title: ch.title),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

@@ -6,6 +6,12 @@ class AuthService {
   // Dominio falso para convertir usernames en emails
   static const String _fakeDomain = '@Walkmons.com';
 
+  /// Espera a que Firebase restaure la sesión guardada en el dispositivo.
+  /// La sesión persiste al cerrar la app (mucho más de 10 minutos).
+  static Future<void> waitForAuthReady() async {
+    await _firebaseAuth.authStateChanges().first;
+  }
+
   /// Convierte un username simple en un email falso
   static String _usernameToEmail(String username) {
     return '$username$_fakeDomain';
@@ -66,6 +72,11 @@ class AuthService {
     } catch (e) {
       throw 'Error al cerrar sesión: $e';
     }
+  }
+
+  /// Actualiza el nombre visible en Firebase Auth (displayName).
+  static Future<void> updateDisplayName(String username) async {
+    await _firebaseAuth.currentUser?.updateDisplayName(username.trim());
   }
 
   /// Obtiene el usuario actual

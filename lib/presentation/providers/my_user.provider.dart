@@ -33,10 +33,17 @@ class MyUserNotifier extends AsyncNotifier<MyUser?> {
     if (authUser == null) return null;
 
     final repo = ref.read(userRepositoryProvider);
+    final uid = authUser.uid;
 
-    var user = await repo.getUser(uid: authUser.uid);
+    // Escucha cambios en Firestore (consola, otra pestaña, etc.).
+    final subscription = repo.watchUser(uid: uid).listen((remote) {
+      if (remote != null) state = AsyncData(remote);
+    });
+    ref.onDispose(subscription.cancel);
+
+    var user = await repo.getUser(uid: uid);
     user ??= await repo.createUser(
-      uid: authUser.uid,
+      uid: uid,
       username: AuthService.usernameFromUser(authUser),
     );
 
@@ -46,16 +53,31 @@ class MyUserNotifier extends AsyncNotifier<MyUser?> {
   Future<void> updateCoins(int Function(int current) updater) async {
     final current = state.value;
     if (current == null) return;
-    final next = current.copyWith(coins: updater(current.coins));
-    state = AsyncData(next);
-    await ref.read(userRepositoryProvider).saveCoins(next.uid, next.coins);
+    await ref.read(userRepositoryProvider).saveCoins(
+          current.uid,
+          updater(current.coins),
+        );
   }
 
   Future<void> setCoins(int coins) async {
     final current = state.value;
     if (current == null) return;
-    final next = current.copyWith(coins: coins);
-    state = AsyncData(next);
-    await ref.read(userRepositoryProvider).saveCoins(next.uid, coins);
+    await ref.read(userRepositoryProvider).saveCoins(current.uid, coins);
+  }
+
+  Future<void> updateUsername(String username) async {
+    final current = state.value;
+    if (current == null) return;
+
+    final trimmed = username.trim();
+    if (trimmed.length < 3) {
+      throw ArgumentError(
+        'El nombre de usuario debe tener al menos 3 caracteres',
+      );
+    }
+
+    await ref.read(userRepositoryProvider).saveUsername(current.uid, trimmed);
+    await AuthService.updateDisplayName(trimmed);
+    ref.read(loggedInUsernameProvider.notifier).state = trimmed;
   }
 }

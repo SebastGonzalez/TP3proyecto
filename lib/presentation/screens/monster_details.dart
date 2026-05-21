@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 
 class MonsterDetails extends StatelessWidget {
@@ -11,9 +12,7 @@ class MonsterDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(monster.name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-      ),
+      appBar: AppPageAppBar(title: monster.name),
       body: _DetailView(monster: monster,),
     );
   }

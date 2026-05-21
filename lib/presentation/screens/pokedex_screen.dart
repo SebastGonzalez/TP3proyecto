@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 
 class PokedexScreen extends ConsumerStatefulWidget {
   const PokedexScreen({super.key});
@@ -16,7 +17,7 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.invalidate(monstersProvider);
+      refreshMonstersCatalog(ref);
     });
   }
 
@@ -25,9 +26,7 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
     final monstersAsync = ref.watch(monstersProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Pokedex Screen'),
-      ),
+      appBar: const AppPageAppBar(title: 'Pokédex'),
       body: monstersAsync.when(
         loading: () => Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

@@ -5,7 +5,8 @@ import 'package:prueba1/core/domain/my_user.dart';
 ///
 /// ## Colección `users`
 /// - **Documento:** `{firebaseAuthUid}`
-/// - **Campos:** `username`, `coins`, `createdAt`, `updatedAt`
+/// - **Campos:** `username`, `coins`, `homeCompanionId`, `homeCompanionImagePath`,
+///   `createdAt`, `updatedAt` (`homeFacing` solo en catálogo `monsters`)
 ///
 /// Los monstruos capturados viven en `owned_monsters` (ver [OwnedMonsterRepository]).
 class UserRepository {
@@ -39,13 +40,27 @@ class UserRepository {
     int initialCoins = defaultCoins,
   }) async {
     final ref = _doc(uid);
+    final trimmedUsername = username?.trim();
     final existing = await ref.get();
+
     if (existing.exists) {
-      return _parseDoc(uid, existing.data()!)!;
+      final parsed = _parseDoc(uid, existing.data()!)!;
+      if (trimmedUsername != null &&
+          trimmedUsername.isNotEmpty &&
+          (parsed.username == null || parsed.username!.trim().isEmpty)) {
+        await ref.set({
+          'username': trimmedUsername,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        final updated = await ref.get();
+        return _parseDoc(uid, updated.data()!)!;
+      }
+      return parsed;
     }
 
     await ref.set({
-      if (username != null) 'username': username,
+      if (trimmedUsername != null && trimmedUsername.isNotEmpty)
+        'username': trimmedUsername,
       'coins': initialCoins,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -55,6 +70,17 @@ class UserRepository {
     return _parseDoc(uid, created.data()!)!;
   }
 
+  Future<void> saveUsername(String uid, String username) async {
+    final trimmed = username.trim();
+    if (trimmed.isEmpty) {
+      throw ArgumentError('El nombre de usuario no puede estar vacío');
+    }
+    await _doc(uid).set({
+      'username': trimmed,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   Future<void> saveCoins(String uid, int coins) async {
     await _doc(uid).update({
       'coins': coins,
@@ -62,10 +88,35 @@ class UserRepository {
     });
   }
 
+  /// Compañero en la home: id en `owned_monsters` + asset para mostrar al instante.
+  Future<void> saveHomeCompanion(
+    String uid, {
+    String? ownedInstanceId,
+    String? imagePath,
+  }) async {
+    final trimmedId = ownedInstanceId?.trim();
+    if (trimmedId == null || trimmedId.isEmpty) {
+      await _doc(uid).set({
+        'homeCompanionId': FieldValue.delete(),
+        'homeCompanionImagePath': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return;
+    }
+    await _doc(uid).set({
+      'homeCompanionId': trimmedId,
+      if (imagePath != null && imagePath.isNotEmpty)
+        'homeCompanionImagePath': imagePath,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   Future<void> saveUser(MyUser user) async {
     await _doc(user.uid).set({
       if (user.username != null) 'username': user.username,
       'coins': user.coins,
+      if (user.homeCompanionId != null)
+        'homeCompanionId': user.homeCompanionId,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -73,6 +124,16 @@ class UserRepository {
   MyUser? _parseDoc(String uid, Map<String, dynamic> data) {
     final coins = (data['coins'] as num?)?.toInt() ?? defaultCoins;
     final username = data['username'] as String?;
-    return MyUser(uid: uid, coins: coins, username: username);
+    final homeCompanionId = data['homeCompanionId'] as String?;
+    final homeCompanionImagePath = data['homeCompanionImagePath'] as String?;
+    final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
+    return MyUser(
+      uid: uid,
+      coins: coins,
+      username: username,
+      homeCompanionId: homeCompanionId,
+      homeCompanionImagePath: homeCompanionImagePath,
+      createdAt: createdAt,
+    );
   }
 }
