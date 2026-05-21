@@ -11,6 +11,7 @@ import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/gatcha_machines_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/providers/rarities_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
@@ -397,7 +398,7 @@ class _MachinePage extends StatelessWidget {
 /// capability `RarityBoostInfo`. Las strategies que no la implementan
 /// (p.ej. una futura `PityStrategy`) simplemente no renderizan nada;
 /// podrían tener su propio widget de info aparte.
-class _RarityRates extends StatelessWidget {
+class _RarityRates extends ConsumerWidget {
   const _RarityRates({required this.strategy});
   final RollStrategy strategy;
 
@@ -407,20 +408,20 @@ class _RarityRates extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (strategy is! RarityBoostInfo) return const SizedBox.shrink();
     final boosts = (strategy as RarityBoostInfo).rarityBoosts;
     if (boosts.isEmpty) return const SizedBox.shrink();
 
-    // Iteramos en el orden canónico de la enum (Common → Rare → Legendary)
-    // para que los chips siempre se muestren igual sin importar cómo
-    // estén insertados en el map de la strategy.
+    final rarities = ref.watch(raritiesProvider).asData?.value;
+    if (rarities == null) return const SizedBox.shrink();
+
     return Wrap(
       spacing: 6,
       runSpacing: 6,
       alignment: WrapAlignment.center,
       children: [
-        for (final r in Rarity.values)
+        for (final r in rarities.rarities)
           if (boosts.containsKey(r))
             _RarityChip(
               rarity: r,

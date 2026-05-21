@@ -9,6 +9,7 @@ class MyUser {
     this.homeCompanionFacing,
     this.homeCompanionScale,
     this.homeCompanionBackgroundColor,
+    this.completedSbcIds = const [],
     this.createdAt,
   });
 
@@ -32,6 +33,9 @@ class MyUser {
   /// Caché de fondo en home (ARGB, ver [Monster.homeDisplayBackgroundColor]).
   final int? homeCompanionBackgroundColor;
 
+  /// Ids de documentos en `sbc/{id}` ya completados (una sola vez por desafío).
+  final List<String> completedSbcIds;
+
   /// Fecha de creación del documento en Firestore (`createdAt`).
   final DateTime? createdAt;
 
@@ -44,6 +48,7 @@ class MyUser {
     String? homeCompanionFacing,
     double? homeCompanionScale,
     int? homeCompanionBackgroundColor,
+    List<String>? completedSbcIds,
     DateTime? createdAt,
     bool clearHomeCompanion = false,
   }) {
@@ -67,9 +72,12 @@ class MyUser {
           ? null
           : (homeCompanionBackgroundColor ??
               this.homeCompanionBackgroundColor),
+      completedSbcIds: completedSbcIds ?? this.completedSbcIds,
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  bool hasCompletedSbc(String sbcId) => completedSbcIds.contains(sbcId);
 }
 
 /// Formato legado en `users.monsters` (solo para migración a `owned_monsters`).

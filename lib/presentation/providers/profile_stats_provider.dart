@@ -66,7 +66,7 @@ ProfileStats _statsFrom({
   var legendaries = 0;
   for (final o in owned) {
     species.add(o.monsterId);
-    if (o.monster.rarity == Rarity.legendary) legendaries++;
+    if (o.monster.rarity.label == 'Legendary') legendaries++;
   }
   final captures = owned.length;
   return ProfileStats(

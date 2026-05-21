@@ -38,8 +38,9 @@ class GatchaMachine {
   factory GatchaMachine.fromFirestore(
     Map<String, dynamic> data, {
     required String documentId,
+    required RarityCatalog rarities,
   }) {
-    final boosts = _parseRarityBoosts(data['rarityBoosts']);
+    final boosts = _parseRarityBoosts(data['rarityBoosts'], rarities);
     return GatchaMachine(
       id: documentId,
       name: data['name'] as String? ?? '',
@@ -57,14 +58,17 @@ class GatchaMachine {
     return n.clamp(1, 10);
   }
 
-  static Map<Rarity, double> _parseRarityBoosts(dynamic raw) {
+  static Map<Rarity, double> _parseRarityBoosts(
+    dynamic raw,
+    RarityCatalog rarities,
+  ) {
     if (raw is! Map) return const {};
     final out = <Rarity, double>{};
     for (final e in raw.entries) {
       final k = e.key;
       final v = e.value;
       if (k is! String || v is! num) continue;
-      out[Rarity.fromLabel(k)] = v.toDouble();
+      out[rarities.byLabel(k)] = v.toDouble();
     }
     return out;
   }

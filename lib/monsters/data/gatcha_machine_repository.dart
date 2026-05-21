@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:prueba1/monsters/domain/gatcha_machine.dart';
+import 'package:prueba1/monsters/domain/rarity.dart';
 
 /// Lee máquinas gacha desde Firestore.
 ///
@@ -22,19 +23,23 @@ class GatchaMachineRepository {
 
   static const String collectionPath = 'gatcha_machines';
 
-  Stream<List<GatchaMachine>> watchMachines() {
-    return _db.collection(collectionPath).snapshots().map(_parseSnapshot);
+  Stream<List<GatchaMachine>> watchMachines({required RarityCatalog rarities}) {
+    return _db
+        .collection(collectionPath)
+        .snapshots()
+        .map((snap) => _parseSnapshot(snap, rarities));
   }
 
-  Future<List<GatchaMachine>> getMachines() async {
+  Future<List<GatchaMachine>> getMachines({required RarityCatalog rarities}) async {
     final snapshot = await _db.collection(collectionPath).get();
-    return _parseSnapshot(snapshot);
+    return _parseSnapshot(snapshot, rarities);
   }
 
   bool _isActive(Map<String, dynamic> data) => data['active'] as bool? ?? true;
 
   List<GatchaMachine> _parseSnapshot(
     QuerySnapshot<Map<String, dynamic>> snapshot,
+    RarityCatalog rarities,
   ) {
     final parsed = <({int order, GatchaMachine machine})>[];
     for (final doc in snapshot.docs) {
@@ -43,7 +48,11 @@ class GatchaMachineRepository {
       final order = (data['order'] as num?)?.toInt() ?? 1 << 20;
       parsed.add((
         order: order,
-        machine: GatchaMachine.fromFirestore(data, documentId: doc.id),
+        machine: GatchaMachine.fromFirestore(
+          data,
+          documentId: doc.id,
+          rarities: rarities,
+        ),
       ));
     }
     parsed.sort((a, b) => a.order.compareTo(b.order));

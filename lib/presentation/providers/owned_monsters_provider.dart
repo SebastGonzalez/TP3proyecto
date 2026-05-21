@@ -4,6 +4,7 @@ import 'package:prueba1/monsters/data/owned_monster_repository.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/providers/rarities_provider.dart';
 
 final ownedMonsterRepositoryProvider =
     Provider((ref) => OwnedMonsterRepository());
@@ -24,6 +25,7 @@ final ownedMonstersProvider = StreamProvider<List<OwnedMonster>>((ref) async* {
     return;
   }
 
+  await ref.watch(raritiesProvider.future);
   final catalog = await ref.watch(monstersProvider.future);
   final repo = ref.read(ownedMonsterRepositoryProvider);
 
@@ -47,6 +49,7 @@ class OwnedMonstersController {
     final uid = _ref.read(userProvider).value?.uid;
     if (uid == null) return null;
 
+    await _ref.read(raritiesProvider.future);
     final catalog = await _ref.read(monstersProvider.future);
     return _ref.read(ownedMonsterRepositoryProvider).create(
           ownerId: uid,
