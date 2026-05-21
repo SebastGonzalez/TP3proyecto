@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+// 2. Importamos tu provider de monedas
+import 'package:prueba1/presentation/providers/coin_provider.dart';
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends ConsumerState<GameScreen> {
   // Configuración del tablero de 5x5
   final int gridSize = 5;
   late List<List<int>> boardValues;
@@ -103,7 +106,7 @@ class _GameScreenState extends State<GameScreen> {
     if (won) {
       setState(() {
         gameWon = true;
-        totalCoins += currentScore; // Sumamos el botín al pozo total
+        ref.read(coinProvider.notifier).update((state) => state + currentScore); // Sumamos el botín al pozo total
       });
     }
   }
