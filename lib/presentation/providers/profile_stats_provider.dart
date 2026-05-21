@@ -5,6 +5,7 @@ import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/presentation/providers/rarities_provider.dart';
 
 /// Estadísticas del perfil calculadas desde datos reales de la app.
 class ProfileStats {
@@ -60,13 +61,16 @@ ProfileStats _statsFrom({
   required int coins,
   required List<OwnedMonster> owned,
   required bool hasHomeCompanion,
+  RarityCatalog? rarities,
   DateTime? createdAt,
 }) {
   final species = <String>{};
   var legendaries = 0;
   for (final o in owned) {
     species.add(o.monsterId);
-    if (o.monster.rarity.label == 'Legendary') legendaries++;
+    if (rarities != null && rarities.isLegendary(o.monster.rarity)) {
+      legendaries++;
+    }
   }
   final captures = owned.length;
   return ProfileStats(
@@ -94,6 +98,7 @@ final profileStatsProvider = Provider<ProfileStats>((ref) {
 
   final owned = ref.watch(capturedMonstersProvider);
   final coins = ref.watch(coinProvider);
+  final rarities = ref.watch(raritiesProvider).value;
   final hasCompanion = myUser?.homeCompanionId != null &&
       myUser!.homeCompanionId!.isNotEmpty;
 
@@ -102,6 +107,7 @@ final profileStatsProvider = Provider<ProfileStats>((ref) {
     coins: coins,
     owned: owned,
     hasHomeCompanion: hasCompanion,
+    rarities: rarities,
     createdAt: myUser?.createdAt,
   );
 });
