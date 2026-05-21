@@ -69,17 +69,17 @@ const List<MenuSection> appMenuSections = [
     ],
   ),
   MenuSection(
-    label: 'ECONOMÍA',
+    label: 'COMERCIO',
     items: [
       MenuItem(
-        title: 'Mercado',
-        subtitle: 'Comprar y vender',
+        title: 'Intercambio',
+        subtitle: 'Canjeá con tus amigos',
         icon: Icons.storefront_outlined,
         route: '/market',
       ),
       MenuItem(
         title: 'Tienda',
-        subtitle: 'Monedas y mejoras',
+        subtitle: 'Compra monedas y mejoras',
         icon: Icons.shopping_cart_outlined,
         route: '/shop',
       ),

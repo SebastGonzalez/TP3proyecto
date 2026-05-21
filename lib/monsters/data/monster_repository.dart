@@ -5,7 +5,9 @@ import 'package:prueba1/monsters/domain/monster.dart';
 ///
 /// Campos relevantes: `name`, `imagePath`, `rarity`,
 /// `homeScale` (número, opcional; ej. `2` = doble en la home; si falta, escala por rareza),
-/// `homeFacing` (`left` | `right`, default `left`), `active` (`false` oculta).
+/// `homeFacing` (`left` | `right`, default `left`),
+/// `homeBackgroundColor` (int ARGB o `"#RRGGBB"`, opcional; fondo de la home con compañero),
+/// `active` (`false` oculta).
 ///
 /// `homeFacing` no va en `owned_monsters` ni en `users`: las instancias
 /// capturadas usan el valor del documento de catálogo vía `monsterId`.

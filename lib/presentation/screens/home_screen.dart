@@ -11,6 +11,35 @@ import 'package:prueba1/presentation/widgets/app_drawer.dart';
 /// Cuánto se corre el personaje a la derecha si hay compañero (fracción del ancho del PJ).
 const _kHomeShiftWithCompanionFactor = 0.08;
 
+const _kDefaultHomeGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [
+    Color(0xFF7EC8E3),
+    Color(0xFFB8E6F5),
+    Color(0xFFE8F4EA),
+  ],
+  stops: [0.0, 0.45, 1.0],
+);
+
+BoxDecoration homeBackgroundDecoration(Color? companionColor) {
+  if (companionColor == null) {
+    return const BoxDecoration(gradient: _kDefaultHomeGradient);
+  }
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        companionColor,
+        Color.lerp(companionColor, Colors.white, 0.38)!,
+        Color.lerp(companionColor, const Color(0xFFE8F4EA), 0.62)!,
+      ],
+      stops: const [0.0, 0.45, 1.0],
+    ),
+  );
+}
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -39,23 +68,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(authUsernameBootstrapProvider);
     final coins = ref.watch(coinProvider);
     final username = ref.watch(currentUsernameProvider);
+    final companion = ref.watch(homeCompanionViewProvider);
+    final backgroundDecoration = homeBackgroundDecoration(
+      companion != null ? companion.backgroundColor : null,
+    );
 
     return Scaffold(
       key: _scaffoldKey,
       drawer: const AppDrawer(),
       body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF7EC8E3),
-              Color(0xFFB8E6F5),
-              Color(0xFFE8F4EA),
-            ],
-            stops: [0.0, 0.45, 1.0],
-          ),
-        ),
+        decoration: backgroundDecoration,
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {

@@ -126,7 +126,6 @@ void _showError(String message) {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registro'),
         elevation: 0,
       ),
       body: Center(
