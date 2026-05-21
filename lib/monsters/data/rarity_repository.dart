@@ -5,12 +5,13 @@ import 'package:prueba1/monsters/domain/rarity.dart';
 /// Colección `monsters_rarity`: catálogo editable sin actualizar la APK.
 ///
 /// Campos por documento (`monsters_rarity/{id}`):
-/// - `label` (string): valor en `monsters.rarity` (ej. `"Common"`)
+/// - `label` (string): valor en `monsters.rarity` (ej. `"Legendario"`)
 /// - `color` (int ARGB)
-/// - `weight` (int): orden y umbral “al menos Rare”
+/// - `weight` (int): orden y umbral “al menos raro”
 /// - `homeCompanionScale` (number, opcional)
 /// - `active` (bool, opcional): `false` oculta la rareza
 /// - `order` (int, opcional): orden en listados
+/// - `aliases` (array, opcional): sinónimos (`Legendary`, `legendary`, …)
 class RarityRepository {
   RarityRepository({FirebaseFirestore? firestore})
       : _db = firestore ?? FirebaseFirestore.instance;
@@ -23,34 +24,54 @@ class RarityRepository {
     final snapshot = await _db.collection(collectionPath).get();
     if (snapshot.docs.isEmpty) return RarityCatalog.defaults();
 
-    final parsed = <({int order, Rarity rarity})>[];
+    final parsed = <({int order, Rarity rarity, List<String> aliases})>[];
     for (final doc in snapshot.docs) {
       final data = doc.data();
       if ((data['active'] as bool?) == false) continue;
       final rarity = _parseDoc(doc.id, data);
       if (rarity == null) continue;
       final order = (data['order'] as num?)?.toInt() ?? rarity.weight;
-      parsed.add((order: order, rarity: rarity));
+      parsed.add((
+        order: order,
+        rarity: rarity,
+        aliases: _parseAliases(data['aliases']),
+      ));
     }
 
     if (parsed.isEmpty) return RarityCatalog.defaults();
 
     parsed.sort((a, b) => a.order.compareTo(b.order));
-    final list = parsed.map((e) => e.rarity).toList();
-    final rareWeight =
-        list.where((r) => r.label == 'Rare').map((r) => r.weight).firstOrNull ??
-            1;
-    return RarityCatalog([
-      for (final r in list)
-        Rarity(
-          id: r.id,
-          label: r.label,
-          color: r.color,
-          weight: r.weight,
-          homeCompanionScale: r.homeCompanionScale,
-          isAtLeastRare: r.weight >= rareWeight,
-        ),
-    ]);
+    final rareWeight = RarityCatalog.computeRareMinWeight(
+      parsed.map((e) => e.rarity).toList(),
+    );
+    final aliases = <String, Rarity>{};
+    for (final e in parsed) {
+      for (final a in e.aliases) {
+        aliases[a] = e.rarity;
+      }
+    }
+    return RarityCatalog(
+      [
+        for (final e in parsed)
+          Rarity(
+            id: e.rarity.id,
+            label: e.rarity.label,
+            color: e.rarity.color,
+            weight: e.rarity.weight,
+            homeCompanionScale: e.rarity.homeCompanionScale,
+            isAtLeastRare: e.rarity.weight >= rareWeight,
+          ),
+      ],
+      aliases: aliases,
+    );
+  }
+
+  static List<String> _parseAliases(dynamic raw) {
+    if (raw is! List) return const [];
+    return [
+      for (final a in raw)
+        if (a is String && a.trim().isNotEmpty) a.trim(),
+    ];
   }
 
   Rarity? _parseDoc(String id, Map<String, dynamic> data) {

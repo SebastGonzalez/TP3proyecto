@@ -32,7 +32,8 @@ class GatchaMachine {
   });
 
   /// Construye desde un documento de Firestore (`gatcha_machines/{id}`).
-  /// `rarityBoosts` usa las mismas claves que [Rarity.label] (p. ej. `Common`).
+  /// `rarityBoosts`: claves = label (`Legendario`) o id (`legendario`). Claves
+  /// sin match (p. ej. `Legendary` con label `Legendario`) se ignoran.
   /// `rollsPerPull` opcional (default 1, máximo 10).
   /// En Firestore, `active: false` excluye la máquina (filtrado en el repository).
   factory GatchaMachine.fromFirestore(
@@ -68,7 +69,9 @@ class GatchaMachine {
       final k = e.key;
       final v = e.value;
       if (k is! String || v is! num) continue;
-      out[rarities.byLabel(k)] = v.toDouble();
+      final rarity = rarities.tryResolve(k);
+      if (rarity == null) continue;
+      out[rarity] = v.toDouble();
     }
     return out;
   }
