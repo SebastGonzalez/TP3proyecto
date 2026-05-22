@@ -10,11 +10,16 @@ import 'package:prueba1/monsters/domain/rarity.dart';
 /// Campos esperados:
 /// - `name` (String), `description` (String), `cost` (int)
 /// - `haloColor`, `accentColor` (int ARGB, mismo formato que [Color.value])
-/// - `rarityBoosts` (mapa): claves = [Rarity.label] (`Common`, `Rare`,
-///   `Legendary`), valores = double
+/// - **`rarityRates`** (mapa, recomendado): claves = [Rarity.label], valores = número
+///   (idealmente suman 100). Solo rarezas listadas participan en esa máquina.
+/// - **`monsterWeights`** (mapa, opcional): `monsterId` → peso relativo dentro de la rareza
+/// - **`poolMode`**: `"all_active"` (default) o `"whitelist"`
+/// - **`poolMonsterIds`** (array, opcional): ids en `monsters` si `poolMode` es whitelist
 /// - `rollsPerPull` (int, opcional): monstruos por tirada (default 1, máx. 10)
 /// - `active` (bool, opcional): `false` oculta la máquina; si falta, se muestra
 /// - `order` (int, opcional): orden en el carrusel (menor = primero)
+///
+/// Requiere `rarityRates` con al menos una entrada (ver `docs/GATCHA_BALANCE.md`).
 class GatchaMachineRepository {
   GatchaMachineRepository({FirebaseFirestore? firestore})
       : _db = firestore ?? FirebaseFirestore.instance;

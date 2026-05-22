@@ -1,10 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:prueba1/monsters/domain/gatcha_drop_config.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
 import 'package:prueba1/monsters/domain/roll_strategy.dart';
-import 'package:prueba1/monsters/domain/strategies/weighted_rarity_strategy.dart';
+import 'package:prueba1/monsters/domain/strategies/tiered_gatcha_strategy.dart';
 
 /// Una máquina de gatcha. Es sólo el "contenedor" con datos de presentación
 /// (nombre, costo, colores) y delega la lógica del roll en una `RollStrategy`.
@@ -32,16 +33,21 @@ class GatchaMachine {
   });
 
   /// Construye desde un documento de Firestore (`gatcha_machines/{id}`).
-  /// `rarityBoosts`: claves = label (`Legendario`) o id (`legendario`). Claves
-  /// sin match (p. ej. `Legendary` con label `Legendario`) se ignoran.
-  /// `rollsPerPull` opcional (default 1, máximo 10).
-  /// En Firestore, `active: false` excluye la máquina (filtrado en el repository).
+  ///
+  /// Requiere `rarityRates` con al menos una rareza. Opcional: `monsterWeights`,
+  /// `poolMode`, `poolMonsterIds`.
   factory GatchaMachine.fromFirestore(
     Map<String, dynamic> data, {
     required String documentId,
     required RarityCatalog rarities,
   }) {
-    final boosts = _parseRarityBoosts(data['rarityBoosts'], rarities);
+    final dropConfig = GatchaDropConfig.fromFirestore(data, rarities: rarities);
+    if (!dropConfig.isTiered) {
+      throw StateError(
+        'gatcha_machines/$documentId: falta rarityRates (al menos una rareza).',
+      );
+    }
+
     return GatchaMachine(
       id: documentId,
       name: data['name'] as String? ?? '',
@@ -49,7 +55,7 @@ class GatchaMachine {
       cost: (data['cost'] as num?)?.toInt() ?? 0,
       haloColor: Color((data['haloColor'] as num?)?.toInt() ?? 0xFF000000),
       accentColor: Color((data['accentColor'] as num?)?.toInt() ?? 0xFF000000),
-      strategy: WeightedRarityStrategy(rarityBoosts: boosts),
+      strategy: TieredGatchaStrategy(dropConfig),
       rollsPerPull: _parseRollsPerPull(data['rollsPerPull']),
     );
   }
@@ -59,24 +65,20 @@ class GatchaMachine {
     return n.clamp(1, 10);
   }
 
-  static Map<Rarity, double> _parseRarityBoosts(
-    dynamic raw,
-    RarityCatalog rarities,
-  ) {
-    if (raw is! Map) return const {};
-    final out = <Rarity, double>{};
-    for (final e in raw.entries) {
-      final k = e.key;
-      final v = e.value;
-      if (k is! String || v is! num) continue;
-      final rarity = rarities.tryResolve(k);
-      if (rarity == null) continue;
-      out[rarity] = v.toDouble();
-    }
-    return out;
-  }
+  GatchaDropConfig get dropConfig =>
+      (strategy as TieredGatchaStrategy).config;
 
-  Monster roll(List<Monster> pool, Random rng) => strategy.roll(pool, rng);
+  /// Pool elegible para esta máquina (gacha + rarezas/pool configurados).
+  List<Monster> filteredPool(List<Monster> catalog) =>
+      dropConfig.filterPool(catalog);
+
+  Monster roll(List<Monster> pool, Random rng) {
+    final eligible = filteredPool(pool);
+    if (eligible.isEmpty) {
+      throw StateError('No hay monstruos elegibles para esta máquina');
+    }
+    return strategy.roll(eligible, rng);
+  }
 
   /// Ejecuta [rollsPerPull] tiradas independientes sobre el mismo pool.
   List<Monster> rollMany(List<Monster> pool, Random rng) => [

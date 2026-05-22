@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/presentation/providers/profile_stats_provider.dart';
+import 'package:prueba1/presentation/widgets/complete_dex_badge.dart';
 import 'package:prueba1/presentation/widgets/default_user_avatar.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -115,7 +116,7 @@ class ProfileScreen extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 220,
+            expandedHeight: stats.ownsCompleteCatalog ? 268 : 220,
             pinned: true,
             actions: [
               IconButton(
@@ -153,6 +154,10 @@ class ProfileScreen extends ConsumerWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (stats.ownsCompleteCatalog) ...[
+                      const SizedBox(height: 10),
+                      const CompleteDexAward(),
+                    ],
                   ],
                 ),
               ),
@@ -190,6 +195,11 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     const _SectionLabel('INFORMACIÓN'),
                     const SizedBox(height: 10),
+                    _InfoTile(
+                      icon: Icons.emoji_events_outlined,
+                      label: 'Rango',
+                      value: stats.rank,
+                    ),
                     _InfoTile(
                       icon: Icons.calendar_today_outlined,
                       label: 'Usuario desde',

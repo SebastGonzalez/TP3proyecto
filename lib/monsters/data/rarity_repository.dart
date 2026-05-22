@@ -7,7 +7,8 @@ import 'package:prueba1/monsters/domain/rarity.dart';
 /// Campos por documento (`monsters_rarity/{id}`):
 /// - `label` (string): valor en `monsters.rarity` (ej. `"Legendario"`)
 /// - `color` (int ARGB)
-/// - `weight` (int): orden y umbral “al menos raro”
+/// - `weight` (int): orden y umbral “al menos raro” (no es % de gatcha)
+/// - `gachaEligible` (bool, opcional): `false` excluye la rareza de todas las máquinas
 /// - `homeCompanionScale` (number, opcional)
 /// - `active` (bool, opcional): `false` oculta la rareza
 /// - `order` (int, opcional): orden en listados
@@ -60,6 +61,7 @@ class RarityRepository {
             weight: e.rarity.weight,
             homeCompanionScale: e.rarity.homeCompanionScale,
             isAtLeastRare: e.rarity.weight >= rareWeight,
+            gachaEligible: e.rarity.gachaEligible,
           ),
       ],
       aliases: aliases,
@@ -86,6 +88,8 @@ class RarityRepository {
     final homeCompanionScale =
         (data['homeCompanionScale'] as num?)?.toDouble() ?? 1.0;
 
+    final gachaEligible = data['gachaEligible'] as bool? ?? true;
+
     return Rarity(
       id: id,
       label: label,
@@ -93,6 +97,7 @@ class RarityRepository {
       weight: weight,
       homeCompanionScale: homeCompanionScale,
       isAtLeastRare: false,
+      gachaEligible: gachaEligible,
     );
   }
 }

@@ -15,11 +15,8 @@ abstract interface class RollStrategy {
   Monster roll(List<Monster> pool, Random rng);
 }
 
-/// Capability opcional para que la UI muestre los multiplicadores por
-/// rareza como chips. Sólo la implementan las estrategias para las que
-/// el concepto tiene sentido. Estrategias como "pity" o "banner" pueden
-/// exponer otras capabilities (`PityInfo`, `BannerInfo`...) sin tocar
-/// esta interfaz.
-abstract interface class RarityBoostInfo {
-  Map<Rarity, double> get rarityBoosts;
+/// Capability para mostrar % por rareza (`TieredGatchaStrategy` + `rarityRates`).
+abstract interface class RarityRatesInfo {
+  /// Valores 0–100 (normalizados para display).
+  Map<Rarity, double> get rarityRatesPercent;
 }

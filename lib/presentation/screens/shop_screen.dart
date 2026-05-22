@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
+import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/presentation/widgets/coins_badge.dart';
 
 /// Paquete de monedas vendido en el mercado (precio solo demostración).
 class _CoinOffer {
@@ -69,7 +70,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
         children: [
-          _ShopCoinsBadge(coins: coins),
+          CoinsBadge(coins: coins, linkToShop: false, centered: true),
           const SizedBox(height: 20),
           Text(
             'Mercado de monedas',
@@ -110,41 +111,6 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   }
 }
 
-class _ShopCoinsBadge extends StatelessWidget {
-  const _ShopCoinsBadge({required this.coins});
-
-  final int coins;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.amber.shade50,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.amber.shade300),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.monetization_on, color: Colors.amber.shade700, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              '$coins',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.amber.shade900,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _OfferCard extends StatelessWidget {
   const _OfferCard({
     required this.offer,
@@ -180,7 +146,7 @@ class _OfferCard extends StatelessWidget {
               ),
               child: Icon(
                 Icons.monetization_on,
-                color: Colors.amber.shade800,
+                color: coinsAccentColor,
                 size: 28,
               ),
             ),
@@ -191,9 +157,10 @@ class _OfferCard extends StatelessWidget {
                 children: [
                   Text(
                     '${offer.coins} monedas',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
+                      color: coinsAccentColor,
                     ),
                   ),
                   const SizedBox(height: 4),
