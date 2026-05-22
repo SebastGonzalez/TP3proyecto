@@ -42,7 +42,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   }
 
   void _buy(int coins) {
-    ref.read(coinProvider.notifier).update((state) => state + coins);
+    ref.read(coinControllerProvider).update((c) => c + coins);
   }
 
   /// Una sola notificación a la vez; al salir de la tienda no queda cola.

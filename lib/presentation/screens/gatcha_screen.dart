@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:prueba1/monsters/domain/gatcha_machine.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
@@ -121,7 +122,7 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
     }
 
     setState(() => _rolling = true);
-    ref.read(coinProvider.notifier).update((state) => state - machine.cost);
+    ref.read(coinControllerProvider).update((c) => c - machine.cost);
     // La pantalla no sabe cómo se rolea: delega en la máquina (`rollsPerPull`
     // + `RollStrategy`). Cambiar la mecánica = cambiar la strategy o Firestore.
     final won = machine.rollMany(widget.monsters, _rng);
@@ -573,27 +574,40 @@ class _CoinsBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.amber.shade50,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push('/shop'),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.amber.shade300),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.monetization_on, color: Colors.amber.shade700, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            '$coins',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.amber.shade900,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.amber.shade50,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.amber.shade300),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.monetization_on,
+                  color: Colors.amber.shade700,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '$coins',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber.shade900,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -62,6 +62,10 @@ class OwnedMonstersController {
     await _ref.read(ownedMonsterRepositoryProvider).delete(ownedInstanceId);
   }
 
+  Future<void> removeMany(Iterable<String> ownedInstanceIds) async {
+    await _ref.read(ownedMonsterRepositoryProvider).deleteMany(ownedInstanceIds);
+  }
+
   Future<void> clearAll() async {
     final uid = _ref.read(userProvider).value?.uid;
     if (uid == null) return;

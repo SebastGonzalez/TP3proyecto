@@ -4,13 +4,15 @@ import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 
-/// Colección del jugador: una entrada por documento en `owned_monsters`.
+/// Colección del jugador con estado de carga/error (fuente: [ownedMonstersProvider]).
+final capturedMonstersAsyncProvider =
+    Provider<AsyncValue<List<OwnedMonster>>>((ref) {
+  return ref.watch(ownedMonstersProvider);
+});
+
+/// Lista resuelta; vacía mientras carga. Preferí [capturedMonstersAsyncProvider] en UI.
 final capturedMonstersProvider = Provider<List<OwnedMonster>>((ref) {
-  return ref.watch(ownedMonstersProvider).when(
-        data: (list) => list,
-        loading: () => const [],
-        error: (_, __) => const [],
-      );
+  return ref.watch(capturedMonstersAsyncProvider).value ?? const [];
 });
 
 /// Crea / elimina instancias en Firestore.
@@ -23,10 +25,17 @@ class CapturedMonstersNotifier extends Notifier<void> {
   }
 
   Future<void> removeById(String ownedInstanceId) async {
-    if (ref.read(homeCompanionProvider) == ownedInstanceId) {
+    await removeManyByIds([ownedInstanceId]);
+  }
+
+  Future<void> removeManyByIds(Iterable<String> ownedInstanceIds) async {
+    final ids = ownedInstanceIds.where((id) => id.isNotEmpty).toSet();
+    if (ids.isEmpty) return;
+    final companion = ref.read(homeCompanionProvider);
+    if (companion != null && ids.contains(companion)) {
       await ref.read(homeCompanionProvider.notifier).clear();
     }
-    await ref.read(ownedMonstersControllerProvider).remove(ownedInstanceId);
+    await ref.read(ownedMonstersControllerProvider).removeMany(ids);
   }
 
   Future<void> clear() async {

@@ -7,15 +7,9 @@ import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 
 final userRepositoryProvider = Provider((ref) => UserRepository());
 
-/// Perfil del jugador logueado (uid de Firebase Auth y monedas).
+/// Perfil del jugador logueado (Firestore `users/{uid}`). Monedas: [coinProvider].
 final myUserProvider =
     AsyncNotifierProvider<MyUserNotifier, MyUser?>(MyUserNotifier.new);
-
-/// Monedas del usuario activo (misma fuente que [coinProvider] cuando hay sesión).
-final myUserCoinsProvider = Provider<int>((ref) {
-  final asyncUser = ref.watch(myUserProvider);
-  return asyncUser.value?.coins ?? UserRepository.defaultCoins;
-});
 
 class MyUserNotifier extends AsyncNotifier<MyUser?> {
   @override
