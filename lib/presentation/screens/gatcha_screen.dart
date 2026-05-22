@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:prueba1/monsters/domain/gatcha_machine.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
@@ -12,9 +11,9 @@ import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/gatcha_machines_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
-import 'package:prueba1/presentation/providers/rarities_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/presentation/widgets/coins_badge.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
 
 class GatchaScreen extends ConsumerStatefulWidget {
@@ -114,9 +113,12 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
       );
       return;
     }
-    if (widget.monsters.isEmpty) {
+    final eligible = machine.filteredPool(widget.monsters);
+    if (eligible.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay monstruos disponibles')),
+        const SnackBar(
+          content: Text('No hay monstruos elegibles en esta máquina'),
+        ),
       );
       return;
     }
@@ -164,7 +166,7 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
         Column(
           children: [
             const SizedBox(height: 12),
-            _CoinsBadge(coins: widget.coins),
+            CoinsBadge(coins: widget.coins),
             const SizedBox(height: 8),
             Expanded(
               child: PageView.builder(
@@ -395,40 +397,28 @@ class _MachinePage extends StatelessWidget {
 // Mini display de los multiplicadores por rareza
 // ---------------------------------------------------------------------------
 
-/// Muestra los multiplicadores por rareza si la strategy implementa la
-/// capability `RarityBoostInfo`. Las strategies que no la implementan
-/// (p.ej. una futura `PityStrategy`) simplemente no renderizan nada;
-/// podrían tener su propio widget de info aparte.
-class _RarityRates extends ConsumerWidget {
+/// Muestra % por rareza ([RarityRatesInfo]).
+class _RarityRates extends StatelessWidget {
   const _RarityRates({required this.strategy});
   final RollStrategy strategy;
 
-  String _formatMult(double m) {
-    if (m == m.roundToDouble()) return m.toStringAsFixed(0);
-    return m.toStringAsFixed(1);
-  }
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (strategy is! RarityBoostInfo) return const SizedBox.shrink();
-    final boosts = (strategy as RarityBoostInfo).rarityBoosts;
-    if (boosts.isEmpty) return const SizedBox.shrink();
-
-    final rarities = ref.watch(raritiesProvider).asData?.value;
-    if (rarities == null) return const SizedBox.shrink();
+  Widget build(BuildContext context) {
+    if (strategy is! RarityRatesInfo) return const SizedBox.shrink();
+    final rates = (strategy as RarityRatesInfo).rarityRatesPercent;
+    if (rates.isEmpty) return const SizedBox.shrink();
 
     return Wrap(
       spacing: 6,
       runSpacing: 6,
       alignment: WrapAlignment.center,
       children: [
-        for (final r in rarities.rarities)
-          if (boosts.containsKey(r))
-            _RarityChip(
-              rarity: r,
-              multiplier: boosts[r]!,
-              multText: '×${_formatMult(boosts[r]!)}',
-            ),
+        for (final e in rates.entries)
+          _RarityChip(
+            rarity: e.key,
+            highlighted: e.value >= 10,
+            rateText: '${e.value.round()}%',
+          ),
       ],
     );
   }
@@ -437,26 +427,25 @@ class _RarityRates extends ConsumerWidget {
 class _RarityChip extends StatelessWidget {
   const _RarityChip({
     required this.rarity,
-    required this.multiplier,
-    required this.multText,
+    required this.highlighted,
+    required this.rateText,
   });
 
   final Rarity rarity;
-  final double multiplier;
-  final String multText;
+  final bool highlighted;
+  final String rateText;
 
   @override
   Widget build(BuildContext context) {
     final color = rarity.color;
-    final boosted = multiplier > 1.0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(boosted ? 0.18 : 0.08),
+        color: color.withOpacity(highlighted ? 0.18 : 0.08),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: color.withOpacity(boosted ? 0.6 : 0.2),
-          width: boosted ? 1.5 : 1,
+          color: color.withOpacity(highlighted ? 0.6 : 0.2),
+          width: highlighted ? 1.5 : 1,
         ),
       ),
       child: Row(
@@ -472,7 +461,7 @@ class _RarityChip extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            multText,
+            rateText,
             style: TextStyle(
               color: color,
               fontSize: 11,
@@ -560,55 +549,6 @@ class _PageDots extends StatelessWidget {
           ),
         );
       }),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Badge de monedas
-// ---------------------------------------------------------------------------
-
-class _CoinsBadge extends StatelessWidget {
-  const _CoinsBadge({required this.coins});
-  final int coins;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => context.push('/shop'),
-        borderRadius: BorderRadius.circular(30),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.amber.shade50,
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.amber.shade300),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.monetization_on,
-                  color: Colors.amber.shade700,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '$coins',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.amber.shade900,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

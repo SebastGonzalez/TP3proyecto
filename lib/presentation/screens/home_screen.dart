@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/app_drawer.dart';
+import 'package:prueba1/presentation/widgets/coins_badge.dart';
 
 /// Cuánto se corre el personaje a la derecha si hay compañero (fracción del ancho del PJ).
 const _kHomeShiftWithCompanionFactor = 0.08;
@@ -130,62 +130,8 @@ class _HomeTopBar extends StatelessWidget {
             onPressed: onMenuPressed,
           ),
           const Spacer(),
-          _CoinChip(coins: coins),
+          CoinsBadge(coins: coins),
         ],
-      ),
-    );
-  }
-}
-
-class _CoinChip extends StatelessWidget {
-  const _CoinChip({required this.coins});
-
-  final int coins;
-
-  @override
-  Widget build(BuildContext context) {
-    // Material: capa base del diseño Material; InkWell necesita un ancestro
-    // Material para dibujar el efecto ripple al tocar.
-    return Material(
-      color: Colors.transparent,
-      // InkWell: detecta tap y muestra ripple (alternativa: GestureDetector, sin ripple).
-      child: InkWell(
-        onTap: () => context.push('/shop'),
-        borderRadius: BorderRadius.circular(20),
-        // Ink: pinta el fondo del chip; el ripple de InkWell se dibuja encima.
-        child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.92),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE6B800), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.monetization_on_rounded,
-                    size: 18, color: Colors.amber.shade700),
-                const SizedBox(width: 6),
-                Text(
-                  '$coins',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: Color(0xFF3D3D3D),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

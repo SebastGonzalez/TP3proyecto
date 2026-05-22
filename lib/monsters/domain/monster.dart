@@ -19,7 +19,6 @@ class Monster {
   Rarity rarity;
   String description;
   String imagePath;
-  int dropWeight;
   /// Tamaño del compañero en la home. Catálogo `monsters.homeScale` (p. ej. `2`).
   /// Si es null, usa [Rarity.homeCompanionScale].
   final double? homeScale;
@@ -44,7 +43,6 @@ class Monster {
     required this.rarity,
     required this.description,
     required this.imagePath,
-    required this.dropWeight,
     this.homeScale,
     this.homeFacing = HomeCompanionSide.left,
     this.homeBackgroundColor,
@@ -59,7 +57,6 @@ class Monster {
     Rarity? rarity,
     String? description,
     String? imagePath,
-    int? dropWeight,
     double? homeScale,
     HomeCompanionSide? homeFacing,
     Color? homeBackgroundColor,
@@ -73,7 +70,6 @@ class Monster {
       rarity: rarity ?? this.rarity,
       description: description ?? this.description,
       imagePath: imagePath ?? this.imagePath,
-      dropWeight: dropWeight ?? this.dropWeight,
       homeScale: homeScale ?? this.homeScale,
       homeFacing: homeFacing ?? this.homeFacing,
       homeBackgroundColor:
@@ -105,7 +101,6 @@ class Monster {
       rarity: rarities.byLabel(data['rarity'] as String?),
       description: data['description'] as String,
       imagePath: data['imagePath'] as String,
-      dropWeight: data['dropWeight'] as int,
       homeScale: (data['homeScale'] as num?)?.toDouble(),
       homeFacing: _homeFacingFromFirestore(data['homeFacing']),
       homeBackgroundColor:
@@ -142,7 +137,6 @@ class Monster {
       'rarity': rarity.label,
       'description': description,
       'imagePath': imagePath,
-      'dropWeight': dropWeight,
       if (homeScale != null) 'homeScale': homeScale,
       'homeFacing': homeFacingLabel,
       if (homeBackgroundColor != null)

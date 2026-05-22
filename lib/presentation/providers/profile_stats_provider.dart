@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/domain/owned_monster.dart';
+import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/rarities_provider.dart';
 
 /// Estadísticas del perfil calculadas desde datos reales de la app.
@@ -16,6 +18,7 @@ class ProfileStats {
     required this.totalCaptures,
     required this.legendaryCount,
     required this.hasHomeCompanion,
+    required this.ownsCompleteCatalog,
     required this.trainerLevel,
     required this.rank,
     this.createdAt,
@@ -28,6 +31,10 @@ class ProfileStats {
   final int totalCaptures;
   final int legendaryCount;
   final bool hasHomeCompanion;
+
+  /// Al menos una captura de cada monstruo activo en `monsters`.
+  final bool ownsCompleteCatalog;
+
   final int trainerLevel;
   final String rank;
   final DateTime? createdAt;
@@ -40,6 +47,7 @@ class ProfileStats {
     totalCaptures: 0,
     legendaryCount: 0,
     hasHomeCompanion: false,
+    ownsCompleteCatalog: false,
     trainerLevel: 1,
     rank: '—',
     isLoading: true,
@@ -56,10 +64,23 @@ String rankFromCaptures(int captures) {
   return 'Maestro';
 }
 
+/// `true` si [ownedSpeciesIds] incluye cada id activo del [catalog].
+bool computeOwnsCompleteCatalog(
+  List<Monster> catalog,
+  Set<String> ownedSpeciesIds,
+) {
+  if (catalog.isEmpty) return false;
+  for (final m in catalog) {
+    if (!ownedSpeciesIds.contains(m.id)) return false;
+  }
+  return true;
+}
+
 ProfileStats _statsFrom({
   required String displayName,
   required int coins,
   required List<OwnedMonster> owned,
+  required List<Monster> catalog,
   required bool hasHomeCompanion,
   RarityCatalog? rarities,
   DateTime? createdAt,
@@ -80,6 +101,7 @@ ProfileStats _statsFrom({
     totalCaptures: captures,
     legendaryCount: legendaries,
     hasHomeCompanion: hasHomeCompanion,
+    ownsCompleteCatalog: computeOwnsCompleteCatalog(catalog, species),
     trainerLevel: trainerLevelFromCaptures(captures),
     rank: rankFromCaptures(captures),
     createdAt: createdAt,
@@ -99,7 +121,11 @@ final profileStatsProvider = Provider<ProfileStats>((ref) {
   final ownedAsync = ref.watch(capturedMonstersAsyncProvider);
   if (ownedAsync.isLoading) return ProfileStats.loading;
 
+  final catalogAsync = ref.watch(monstersProvider);
+  if (catalogAsync.isLoading) return ProfileStats.loading;
+
   final owned = ownedAsync.value ?? const [];
+  final catalog = catalogAsync.value ?? const [];
   final coins = ref.watch(coinProvider);
   final rarities = ref.watch(raritiesProvider).value;
   final hasCompanion = myUser?.homeCompanionId != null &&
@@ -109,6 +135,7 @@ final profileStatsProvider = Provider<ProfileStats>((ref) {
     displayName: displayName,
     coins: coins,
     owned: owned,
+    catalog: catalog,
     hasHomeCompanion: hasCompanion,
     rarities: rarities,
     createdAt: myUser?.createdAt,
