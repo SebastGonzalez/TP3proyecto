@@ -273,6 +273,9 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
+/// Ancho fijo de la columna de etiquetas para alinear los valores a la derecha.
+const _kInfoLabelWidth = 132.0;
+
 class _InfoTile extends StatelessWidget {
   const _InfoTile({
     required this.icon,
@@ -292,12 +295,14 @@ class _InfoTile extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: const Color(0xFFFF6B00)),
           const SizedBox(width: 14),
-          Text(
-            label,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+          SizedBox(
+            width: _kInfoLabelWidth,
+            child: Text(
+              label,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            ),
           ),
-          const Spacer(),
-          Flexible(
+          Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,

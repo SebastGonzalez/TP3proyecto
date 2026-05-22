@@ -2,21 +2,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/data/user_repository.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 
-/// Monedas del jugador. Con sesión activa lee/escribe vía [myUserProvider] en Firestore.
-class CoinNotifier extends Notifier<int> {
-  @override
-  int build() {
-    ref.listen(myUserProvider, (_, next) {
-      next.whenData((user) {
-        state = user?.coins ?? UserRepository.defaultCoins;
-      });
-    });
-    return ref.watch(myUserCoinsProvider);
+/// Saldo actual del jugador (Firestore vía [myUserProvider]).
+final coinProvider = Provider<int>((ref) {
+  final user = ref.watch(myUserProvider);
+  return user.value?.coins ?? UserRepository.defaultCoins;
+});
+
+/// Persiste cambios de monedas en `users` (delega en [MyUserNotifier]).
+final coinControllerProvider = Provider<CoinController>(
+  (ref) => CoinController(ref),
+);
+
+class CoinController {
+  CoinController(this._ref);
+
+  final Ref _ref;
+
+  Future<void> update(int Function(int current) updater) {
+    return _ref.read(myUserProvider.notifier).updateCoins(updater);
   }
 
-  void update(int Function(int current) updater) {
-    ref.read(myUserProvider.notifier).updateCoins(updater);
+  Future<void> set(int coins) {
+    return _ref.read(myUserProvider.notifier).setCoins(coins);
   }
 }
-
-final coinProvider = NotifierProvider<CoinNotifier, int>(CoinNotifier.new);

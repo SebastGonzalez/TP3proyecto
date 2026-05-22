@@ -107,7 +107,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (won) {
       setState(() {
         gameWon = true;
-        ref.read(coinProvider.notifier).update((state) => state + currentScore); // Sumamos el botín al pozo total
+        ref.read(coinControllerProvider).update((c) => c + currentScore);
       });
     }
   }

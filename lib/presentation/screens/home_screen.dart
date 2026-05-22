@@ -11,34 +11,11 @@ import 'package:prueba1/presentation/widgets/app_drawer.dart';
 /// Cuánto se corre el personaje a la derecha si hay compañero (fracción del ancho del PJ).
 const _kHomeShiftWithCompanionFactor = 0.08;
 
-const _kDefaultHomeGradient = LinearGradient(
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-  colors: [
-    Color(0xFF7EC8E3),
-    Color(0xFFB8E6F5),
-    Color(0xFFE8F4EA),
-  ],
-  stops: [0.0, 0.45, 1.0],
+const _kHomeGradient = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [Color(0xFF7EC8E3), Color(0xFFE8F4EA)],
 );
-
-BoxDecoration homeBackgroundDecoration(Color? companionColor) {
-  if (companionColor == null) {
-    return const BoxDecoration(gradient: _kDefaultHomeGradient);
-  }
-  return BoxDecoration(
-    gradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        companionColor,
-        Color.lerp(companionColor, Colors.white, 0.38)!,
-        Color.lerp(companionColor, const Color(0xFFE8F4EA), 0.62)!,
-      ],
-      stops: const [0.0, 0.45, 1.0],
-    ),
-  );
-}
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -69,48 +46,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final coins = ref.watch(coinProvider);
     final username = ref.watch(currentUsernameProvider);
     final companion = ref.watch(homeCompanionViewProvider);
-    final backgroundDecoration = homeBackgroundDecoration(
-      companion != null ? companion.backgroundColor : null,
-    );
+    final companionTint = companion?.backgroundColor;
 
     return Scaffold(
       key: _scaffoldKey,
       drawer: const AppDrawer(),
-      body: DecoratedBox(
-        decoration: backgroundDecoration,
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < 340;
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const DecoratedBox(decoration: BoxDecoration(gradient: _kHomeGradient)),
+          if (companionTint != null)
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    companionTint.withValues(alpha: 0.38),
+                    companionTint.withValues(alpha: 0.14),
+                    companionTint.withValues(alpha: 0.04),
+                  ],
+                  stops: const [0.0, 0.55, 1.0],
+                ),
+              ),
+            ),
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 340;
 
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: _CharacterHub(
-                        username: username,
-                        compact: compact,
-                        maxImageHeight: constraints.maxHeight * 0.48,
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: _CharacterHub(
+                          username: username,
+                          compact: compact,
+                          maxImageHeight: constraints.maxHeight * 0.48,
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: _HomeTopBar(
-                      coins: coins,
-                      onMenuPressed: () =>
-                          _scaffoldKey.currentState?.openDrawer(),
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: _HomeTopBar(
+                        coins: coins,
+                        onMenuPressed: () =>
+                            _scaffoldKey.currentState?.openDrawer(),
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

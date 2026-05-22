@@ -69,6 +69,17 @@ class OwnedMonsterRepository {
     await _collection.doc(ownedId).delete();
   }
 
+  /// Borra varias instancias en un solo commit (un solo evento del stream).
+  Future<void> deleteMany(Iterable<String> ownedIds) async {
+    final ids = ownedIds.where((id) => id.isNotEmpty).toSet();
+    if (ids.isEmpty) return;
+    final batch = _db.batch();
+    for (final id in ids) {
+      batch.delete(_collection.doc(id));
+    }
+    await batch.commit();
+  }
+
   Future<void> deleteAllForOwner(String ownerId) async {
     final snap = await _collection.where('ownerId', isEqualTo: ownerId).get();
     if (snap.docs.isEmpty) return;

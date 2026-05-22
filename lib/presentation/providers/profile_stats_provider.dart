@@ -96,7 +96,10 @@ final profileStatsProvider = Provider<ProfileStats>((ref) {
       ? myUser!.username!.trim()
       : fallbackName;
 
-  final owned = ref.watch(capturedMonstersProvider);
+  final ownedAsync = ref.watch(capturedMonstersAsyncProvider);
+  if (ownedAsync.isLoading) return ProfileStats.loading;
+
+  final owned = ownedAsync.value ?? const [];
   final coins = ref.watch(coinProvider);
   final rarities = ref.watch(raritiesProvider).value;
   final hasCompanion = myUser?.homeCompanionId != null &&
