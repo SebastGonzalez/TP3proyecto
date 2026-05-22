@@ -37,18 +37,9 @@ Opcional en **Testers & Groups**: activar *Restrict invitation acceptance to rec
 
 ---
 
-## 3. Subir una versión nueva
+## 3. Subir una versión nueva (recomendado: un comando)
 
-### Opción A — Consola (sin CLI)
-
-1. `flutter build apk --release`
-2. APK: `build/app/outputs/flutter-apk/app-release.apk`
-3. App Distribution → **Releases** → arrastrar el APK → notas → **Distribute**.
-4. Los testers que entraron por el invite link reciben aviso de la nueva build (email o [appdistribution.firebase.google.com](https://appdistribution.firebase.google.com)).
-
-### Opción B — Script (CLI)
-
-Requisitos:
+Requisitos (una vez):
 
 ```powershell
 npm install -g firebase-tools
@@ -58,14 +49,39 @@ firebase login
 Desde la raíz del repo:
 
 ```powershell
-.\scripts\distribute-android.ps1 -ReleaseNotes "TP v0.1.0"
+.\scripts\distribute-android.ps1 -ReleaseNotes "Walkmons 1.0 — primera build"
 ```
 
-Con grupo (si creaste el invite link atado al grupo `beta`):
+El script:
+
+1. Lee `version` en `pubspec.yaml` (ej. `1.0.0+1` → se muestra como **1.0**).
+2. `flutter build apk --release`
+3. Sube el APK a App Distribution.
+4. Si todo OK, deja en `pubspec.yaml` la **próxima** versión (`1.1.0+2`, luego `1.2.0+3`, …).
+
+La segunda vez podés omitir notas (usa un texto por defecto):
 
 ```powershell
-.\scripts\distribute-android.ps1 -ReleaseNotes "TP v0.1.0" -Groups "beta"
+.\scripts\distribute-android.ps1
 ```
+
+Con grupo (invite link atado al grupo `beta`):
+
+```powershell
+.\scripts\distribute-android.ps1 -Groups "beta"
+```
+
+Sin auto-versionado:
+
+```powershell
+.\scripts\distribute-android.ps1 -NoVersionBump -ReleaseNotes "Hotfix"
+```
+
+### Consola manual (sin script)
+
+1. `flutter build apk --release`
+2. APK: `build/app/outputs/flutter-apk/app-release.apk`
+3. App Distribution → **Releases** → arrastrar el APK → **Distribute**.
 
 ---
 
@@ -91,4 +107,11 @@ Con grupo (si creaste el invite link atado al grupo `beta`):
 
 ## 6. Versión en el APK
 
-La versión sale de `pubspec.yaml` (`version: 0.1.0+1` → nombre `0.1.0`, build `1`). Subí el número antes de cada distribución para que en la consola se distingan las releases.
+Formato en `pubspec.yaml`: `version: 1.0.0+1`
+
+| Parte | Significado | Ejemplo |
+|-------|-------------|---------|
+| `1.0.0` | Nombre visible (1.0, 1.1, 1.2…) | minor sube con cada `distribute-android.ps1` |
+| `+1` | `versionCode` Android (siempre distinto) | +1 por cada build |
+
+Primera distribución: `1.0.0+1`. Después del script queda `1.1.0+2` listo para la siguiente.

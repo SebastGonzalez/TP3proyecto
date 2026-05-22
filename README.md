@@ -9,5 +9,5 @@ mejoras de pokemones repetidos como el cs(que te den una ficha rarety+1)
 Guía: [docs/APP_DISTRIBUTION.md](docs/APP_DISTRIBUTION.md) — Firebase App Distribution con **invite link**.
 
 ```powershell
-.\scripts\distribute-android.ps1 -ReleaseNotes "TP v0.1.0"
+.\scripts\distribute-android.ps1 -ReleaseNotes "Walkmons 1.0 — primera build"
 ```
