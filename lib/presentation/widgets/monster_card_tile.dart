@@ -53,9 +53,11 @@ class MonsterCardTile extends StatelessWidget {
           child: Column(
             children: [
               Expanded(
-                child: Image.asset(
-                  monster.imagePath,
-                  fit: BoxFit.contain,
+                child: Center(
+                  child: Image.asset(
+                    monster.imagePath,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),

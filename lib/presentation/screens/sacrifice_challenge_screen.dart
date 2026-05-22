@@ -252,6 +252,7 @@ class _SacrificeChallengeScreenState
         const SizedBox(height: 8),
         SizedBox(
           height: 220,
+          width: double.infinity,
           child: MonsterCardTile(
             monster: ch.reward,
             rarityColor: ch.reward.rarity.color,
