@@ -56,6 +56,7 @@ class MainApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
+      title: 'Walkmons',
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       theme: ThemeData(

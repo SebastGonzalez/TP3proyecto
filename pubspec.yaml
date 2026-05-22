@@ -1,5 +1,5 @@
 name: prueba1
-description: "A new Flutter project."
+description: "Walkmons — colección y fusión de monstruos."
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -19,6 +19,23 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  # Cuadrado 1024px; el login usa LogoJuego.png apaisado (669×373) — no usarlo directo aquí.
+  image_path: assets/icon/app_icon.png
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assets/icon/app_icon.png
+  web:
+    generate: true
+    image_path: assets/icon/app_icon.png
+    background_color: "#FFFFFF"
+    theme_color: "#FF6B00"
+  windows:
+    generate: true
+    image_path: assets/icon/app_icon.png
 
 flutter:
   uses-material-design: true
