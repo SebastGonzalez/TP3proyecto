@@ -6,8 +6,9 @@ import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/rarities_provider.dart';
 
-final ownedMonsterRepositoryProvider =
-    Provider((ref) => OwnedMonsterRepository());
+final ownedMonsterRepositoryProvider = Provider(
+  (ref) => OwnedMonsterRepository(),
+);
 
 /// Instancias del jugador en `owned_monsters` (una fila por captura).
 final ownedMonstersProvider = StreamProvider<List<OwnedMonster>>((ref) async* {
@@ -51,9 +52,26 @@ class OwnedMonstersController {
 
     await _ref.read(raritiesProvider.future);
     final catalog = await _ref.read(monstersProvider.future);
-    return _ref.read(ownedMonsterRepositoryProvider).create(
+    return _ref
+        .read(ownedMonsterRepositoryProvider)
+        .create(ownerId: uid, monsterId: catalogMonster.id, catalog: catalog);
+  }
+
+  Future<List<OwnedMonster>> purchaseCaptures({
+    required int cost,
+    required List<Monster> monsters,
+  }) async {
+    final uid = _ref.read(userProvider).value?.uid;
+    if (uid == null) return const [];
+
+    await _ref.read(raritiesProvider.future);
+    final catalog = await _ref.read(monstersProvider.future);
+    return _ref
+        .read(ownedMonsterRepositoryProvider)
+        .purchaseCaptures(
           ownerId: uid,
-          monsterId: catalogMonster.id,
+          cost: cost,
+          monsters: monsters,
           catalog: catalog,
         );
   }
@@ -63,7 +81,9 @@ class OwnedMonstersController {
   }
 
   Future<void> removeMany(Iterable<String> ownedInstanceIds) async {
-    await _ref.read(ownedMonsterRepositoryProvider).deleteMany(ownedInstanceIds);
+    await _ref
+        .read(ownedMonsterRepositoryProvider)
+        .deleteMany(ownedInstanceIds);
   }
 
   Future<void> clearAll() async {

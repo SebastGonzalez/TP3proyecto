@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prueba1/monsters/data/owned_monster_repository.dart';
 import 'package:prueba1/monsters/domain/gatcha_machine.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
-import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 
@@ -54,16 +54,21 @@ class GatchaRollController {
     );
     if (message != null) return GatchaRollResult.failure(message);
 
-    _ref.read(coinControllerProvider).update((c) => c - machine.cost);
     final won = machine.rollMany(monsters, rng);
-    final capture = _ref.read(ownedMonstersControllerProvider);
-    final created = <Monster>[];
-    for (final catalogMonster in won) {
-      final instance = await capture.capture(catalogMonster);
-      if (instance != null) created.add(instance.monster);
+    try {
+      final captured = await _ref
+          .read(ownedMonstersControllerProvider)
+          .purchaseCaptures(cost: machine.cost, monsters: won);
+      return GatchaRollResult.success([
+        for (final instance in captured) instance.monster,
+      ]);
+    } on InsufficientCoinsException {
+      return GatchaRollResult.failure('Necesitás ${machine.cost} monedas!');
+    } catch (_) {
+      return const GatchaRollResult.failure(
+        'No se pudo completar la tirada. Intentá de nuevo.',
+      );
     }
-
-    return GatchaRollResult.success(created);
   }
 }
 
