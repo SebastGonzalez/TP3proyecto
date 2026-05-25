@@ -20,6 +20,13 @@ class TradeRequest {
     this.completedAt,
     this.receivedMonsterId,
     this.receivedMonsterName,
+    this.fromReceivedMonsterId,
+    this.fromReceivedMonsterName,
+    this.toReceivedMonsterId,
+    this.toReceivedMonsterName,
+    this.fromRevealSeen,
+    this.toRevealSeen,
+    this.seen,
   });
 
   final String id;
@@ -40,6 +47,19 @@ class TradeRequest {
   /// Monster catalogId que User A recibió (para reveal al reentrar).
   final String? receivedMonsterId;
   final String? receivedMonsterName;
+
+  /// Monster catalogId/nombre que User A (`fromUserId`) recibió.
+  final String? fromReceivedMonsterId;
+  final String? fromReceivedMonsterName;
+
+  /// Monster catalogId/nombre que User B (`toUserId`) recibió.
+  final String? toReceivedMonsterId;
+  final String? toReceivedMonsterName;
+
+  /// Reveal visto por User A / User B. `seen` es el campo legacy de User A.
+  final bool? fromRevealSeen;
+  final bool? toRevealSeen;
+  final bool? seen;
 
   bool get isExpired =>
       status == TradeStatus.pending && DateTime.now().isAfter(expiresAt);
@@ -62,7 +82,44 @@ class TradeRequest {
       completedAt: _parseDateTime(data['completedAt']),
       receivedMonsterId: data['receivedMonsterId'] as String?,
       receivedMonsterName: data['receivedMonsterName'] as String?,
+      fromReceivedMonsterId: data['fromReceivedMonsterId'] as String?,
+      fromReceivedMonsterName: data['fromReceivedMonsterName'] as String?,
+      toReceivedMonsterId: data['toReceivedMonsterId'] as String?,
+      toReceivedMonsterName: data['toReceivedMonsterName'] as String?,
+      fromRevealSeen: data['fromRevealSeen'] as bool?,
+      toRevealSeen: data['toRevealSeen'] as bool?,
+      seen: data['seen'] as bool?,
     );
+  }
+
+  String? receivedMonsterIdForUser(String userId) {
+    if (userId == fromUserId) {
+      return fromReceivedMonsterId ?? receivedMonsterId;
+    }
+    if (userId == toUserId) {
+      return toReceivedMonsterId;
+    }
+    return null;
+  }
+
+  String? receivedMonsterNameForUser(String userId) {
+    if (userId == fromUserId) {
+      return fromReceivedMonsterName ?? receivedMonsterName;
+    }
+    if (userId == toUserId) {
+      return toReceivedMonsterName ?? fromMonsterName;
+    }
+    return null;
+  }
+
+  bool revealSeenForUser(String userId) {
+    if (userId == fromUserId) {
+      return fromRevealSeen ?? seen ?? false;
+    }
+    if (userId == toUserId) {
+      return toRevealSeen ?? false;
+    }
+    return true;
   }
 
   static TradeStatus _parseStatus(dynamic raw) {

@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/trade_request.dart';
-import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
+import 'package:prueba1/presentation/providers/trade_controller_provider.dart';
 import 'package:prueba1/presentation/providers/trade_provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
@@ -23,14 +23,14 @@ class MarketScreen extends ConsumerStatefulWidget {
     required String monsterName,
     required String monsterImagePath,
   }) async {
-    final uid = ref.read(userProvider).value?.uid;
-    if (uid == null) return;
-    final trade = await ref.read(tradeRepositoryProvider).createTrade(
-          fromUserId: uid,
-          fromOwnedMonsterId: ownedMonsterId,
-          fromMonsterName: monsterName,
-          fromMonsterImagePath: monsterImagePath,
+    final trade = await ref
+        .read(tradeControllerProvider)
+        .createTrade(
+          ownedMonsterId: ownedMonsterId,
+          monsterName: monsterName,
+          monsterImagePath: monsterImagePath,
         );
+    if (trade == null) return;
     if (!context.mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -108,15 +108,15 @@ class _MarketScreenState extends ConsumerState<MarketScreen> {
   }
 
   void _navigateCreate(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const _CreateTradeScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const _CreateTradeScreen()));
   }
 
   void _navigateEnterCode(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const _EnterCodeScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const _EnterCodeScreen()));
   }
 }
 
@@ -164,13 +164,21 @@ class _ActionButton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700)),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(subtitle,
-                        style:
-                            TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -201,12 +209,15 @@ class _ProposedTradesSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('PROPUESTAS RECIBIDAS',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.orange.shade700,
-                    letterSpacing: 1)),
+            Text(
+              'PROPUESTAS RECIBIDAS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.orange.shade700,
+                letterSpacing: 1,
+              ),
+            ),
             const SizedBox(height: 8),
             for (final trade in trades) _ProposedTradeTile(trade: trade),
             const SizedBox(height: 16),
@@ -275,7 +286,8 @@ class _ProposedTradeTileState extends ConsumerState<_ProposedTradeTile> {
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2))
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Aceptar'),
                 ),
               ),
@@ -288,10 +300,20 @@ class _ProposedTradeTileState extends ConsumerState<_ProposedTradeTile> {
 
   Future<void> _confirm() async {
     setState(() => _loading = true);
+    final suppressionKey = completedTradeRevealSuppressionKey(
+      widget.trade.fromUserId,
+      widget.trade.id,
+    );
     try {
-      await ref.read(tradeRepositoryProvider).confirmTrade(widget.trade.id);
-      if (!mounted) return;
-      ref.invalidate(ownedMonstersProvider);
+      final suppressedIds = ref.read(
+        suppressedCompletedTradeRevealIdsProvider.notifier,
+      );
+      suppressedIds.state = {...suppressedIds.state, suppressionKey};
+
+      await ref.read(tradeControllerProvider).confirmTrade(widget.trade);
+      if (mounted) {
+        ref.invalidate(ownedMonstersProvider);
+      }
 
       final catalog = await ref.read(monstersProvider.future);
       final receivedName = widget.trade.toMonsterName;
@@ -302,10 +324,21 @@ class _ProposedTradeTileState extends ConsumerState<_ProposedTradeTile> {
       if (received != null && mounted) {
         await showGatchaReveal(context, received);
       }
+      await ref
+          .read(tradeControllerProvider)
+          .markCompletedRevealSeen(widget.trade);
+      suppressedIds.state = Set<String>.of(suppressedIds.state)
+        ..remove(suppressionKey);
     } catch (e) {
+      final suppressedIds = ref.read(
+        suppressedCompletedTradeRevealIdsProvider.notifier,
+      );
+      suppressedIds.state = Set<String>.of(suppressedIds.state)
+        ..remove(suppressionKey);
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
       setState(() => _loading = false);
     }
   }
@@ -313,11 +346,12 @@ class _ProposedTradeTileState extends ConsumerState<_ProposedTradeTile> {
   Future<void> _reject() async {
     setState(() => _loading = true);
     try {
-      await ref.read(tradeRepositoryProvider).rejectProposal(widget.trade.id);
+      await ref.read(tradeControllerProvider).rejectProposal(widget.trade);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
     if (mounted) setState(() => _loading = false);
   }
@@ -341,12 +375,15 @@ class _WaitingTradesSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('ESPERANDO RESPUESTA',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.blue.shade700,
-                    letterSpacing: 1)),
+            Text(
+              'ESPERANDO RESPUESTA',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.blue.shade700,
+                letterSpacing: 1,
+              ),
+            ),
             const SizedBox(height: 8),
             for (final trade in trades) _WaitingTradeTile(trade: trade),
             const SizedBox(height: 16),
@@ -376,29 +413,33 @@ class _WaitingTradeTile extends ConsumerWidget {
           if (trade.toMonsterImagePath != null)
             Padding(
               padding: const EdgeInsets.only(right: 10),
-              child: Image.asset(trade.toMonsterImagePath!,
-                  width: 40, height: 40),
+              child: Image.asset(
+                trade.toMonsterImagePath!,
+                width: 40,
+                height: 40,
+              ),
             ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Ofreciste: ${trade.toMonsterName ?? "?"}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13)),
-                Text('Por: ${trade.fromMonsterName}',
-                    style:
-                        TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                Text(
+                  'Ofreciste: ${trade.toMonsterName ?? "?"}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                Text(
+                  'Por: ${trade.fromMonsterName}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
               ],
             ),
           ),
           TextButton(
             onPressed: () async {
-              final uid = ref.read(userProvider).value?.uid;
-              if (uid == null) return;
-              await ref
-                  .read(tradeRepositoryProvider)
-                  .withdrawProposal(trade.id, uid);
+              await ref.read(tradeControllerProvider).withdrawProposal(trade);
             },
             child: const Text('Retirar', style: TextStyle(fontSize: 12)),
           ),
@@ -418,22 +459,32 @@ class _PendingTradesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pendingAsync = ref.watch(myPendingTradesProvider);
+    final ownedIds = ref
+        .watch(capturedMonstersProvider)
+        .map((o) => o.id)
+        .toSet();
     return pendingAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
       data: (trades) {
-        final active =
-            trades.where((t) => !t.isExpired).toList();
+        final active = trades
+            .where(
+              (t) => !t.isExpired && ownedIds.contains(t.fromOwnedMonsterId),
+            )
+            .toList();
         if (active.isEmpty) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Mis propuestas activas',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey.shade500,
-                    letterSpacing: 1)),
+            Text(
+              'Mis propuestas activas',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.grey.shade500,
+                letterSpacing: 1,
+              ),
+            ),
             const SizedBox(height: 8),
             for (final trade in active) _PendingTradeTile(trade: trade),
           ],
@@ -473,19 +524,27 @@ class _PendingTradeTile extends ConsumerWidget {
             if (trade.fromMonsterImagePath != null)
               Padding(
                 padding: const EdgeInsets.only(right: 10),
-                child: Image.asset(trade.fromMonsterImagePath!,
-                    width: 40, height: 40),
+                child: Image.asset(
+                  trade.fromMonsterImagePath!,
+                  width: 40,
+                  height: 40,
+                ),
               ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(trade.fromMonsterName,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 14)),
-                  Text('Código: ${trade.code}',
-                      style:
-                          TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  Text(
+                    trade.fromMonsterName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    'Código: ${trade.code}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
                 ],
               ),
             ),
@@ -546,22 +605,20 @@ class _CreateTradeScreenState extends ConsumerState<_CreateTradeScreen> {
   }
 
   Future<void> _createTrade(OwnedMonster owned) async {
-    final uid = ref.read(userProvider).value?.uid;
-    if (uid == null) return;
+    if (!ref.read(tradeControllerProvider).hasCurrentUser) return;
     setState(() => _creating = true);
     try {
-      final trade = await ref.read(tradeRepositoryProvider).createTrade(
-            fromUserId: uid,
-            fromOwnedMonsterId: owned.id,
-            fromMonsterName: owned.monster.name,
-            fromMonsterImagePath: owned.monster.imagePath,
-          );
+      final trade = await ref
+          .read(tradeControllerProvider)
+          .createTradeFromOwned(owned);
+      if (trade == null) return;
       if (!mounted) return;
       setState(() => _createdTrade = trade);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
       setState(() => _creating = false);
     }
   }
@@ -603,13 +660,17 @@ class _TradeCodeDisplay extends ConsumerWidget {
                   );
                 },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 28,
+                    vertical: 18,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3E5F5),
                     borderRadius: BorderRadius.circular(16),
-                    border:
-                        Border.all(color: const Color(0xFF7B1FA2), width: 2),
+                    border: Border.all(
+                      color: const Color(0xFF7B1FA2),
+                      width: 2,
+                    ),
                   ),
                   child: Text(
                     _formatCode(trade.code),
@@ -623,19 +684,26 @@ class _TradeCodeDisplay extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              Text('Toca para copiar',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+              Text(
+                'Toca para copiar',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+              ),
               const SizedBox(height: 20),
               if (trade.fromMonsterImagePath != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Image.asset(trade.fromMonsterImagePath!,
-                      width: 80, height: 80),
+                  child: Image.asset(
+                    trade.fromMonsterImagePath!,
+                    width: 80,
+                    height: 80,
+                  ),
                 ),
               Text(
                 'Ofrecés: ${trade.fromMonsterName}',
-                style:
-                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -645,12 +713,7 @@ class _TradeCodeDisplay extends ConsumerWidget {
               const SizedBox(height: 32),
               OutlinedButton(
                 onPressed: () async {
-                  final uid = ref.read(userProvider).value?.uid;
-                  if (uid != null) {
-                    await ref
-                        .read(tradeRepositoryProvider)
-                        .cancelTrade(trade.id, uid);
-                  }
+                  await ref.read(tradeControllerProvider).cancelTrade(trade);
                   onCancel();
                 },
                 child: const Text('Cancelar trade'),
@@ -701,7 +764,7 @@ class _EnterCodeScreenState extends ConsumerState<_EnterCodeScreen> {
       _searching = true;
       _error = null;
     });
-    final trade = await ref.read(tradeRepositoryProvider).findByCode(code);
+    final trade = await ref.read(tradeControllerProvider).findByCode(code);
     if (!mounted) return;
     if (trade == null) {
       setState(() {
@@ -710,8 +773,7 @@ class _EnterCodeScreenState extends ConsumerState<_EnterCodeScreen> {
       });
       return;
     }
-    final uid = ref.read(userProvider).value?.uid;
-    if (trade.fromUserId == uid) {
+    if (ref.read(tradeControllerProvider).isOwnTrade(trade)) {
       setState(() {
         _error = 'No podés aceptar tu propio trade';
         _searching = false;
@@ -752,15 +814,17 @@ class _EnterCodeScreenState extends ConsumerState<_EnterCodeScreen> {
               maxLength: 6,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 4),
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 4,
+              ),
               decoration: InputDecoration(
                 counterText: '',
                 hintText: 'ABC123',
                 errorText: _error,
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               onSubmitted: (_) => _search(),
             ),
@@ -773,7 +837,8 @@ class _EnterCodeScreenState extends ConsumerState<_EnterCodeScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Text('Buscar trade'),
               ),
             ),
@@ -815,17 +880,24 @@ class _AcceptTradeScreenState extends ConsumerState<_AcceptTradeScreen> {
             color: const Color(0xFFF3E5F5),
             child: Column(
               children: [
-                const Text('Te ofrecen:',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF7B1FA2))),
+                const Text(
+                  'Te ofrecen:',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF7B1FA2)),
+                ),
                 const SizedBox(height: 8),
                 if (widget.trade.fromMonsterImagePath != null)
-                  Image.asset(widget.trade.fromMonsterImagePath!,
-                      width: 64, height: 64),
+                  Image.asset(
+                    widget.trade.fromMonsterImagePath!,
+                    width: 64,
+                    height: 64,
+                  ),
                 const SizedBox(height: 6),
                 Text(
                   widget.trade.fromMonsterName,
                   style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w800),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -870,10 +942,9 @@ class _AcceptTradeScreenState extends ConsumerState<_AcceptTradeScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2))
-                        : Text(
-                            'Proponer: ${_selected!.monster.name}'),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text('Proponer: ${_selected!.monster.name}'),
                   ),
                 ),
               ),
@@ -886,28 +957,24 @@ class _AcceptTradeScreenState extends ConsumerState<_AcceptTradeScreen> {
   Future<void> _execute() async {
     final selected = _selected;
     if (selected == null) return;
-    final uid = ref.read(userProvider).value?.uid;
-    if (uid == null) return;
-
+    if (!ref.read(tradeControllerProvider).hasCurrentUser) return;
     setState(() => _executing = true);
     try {
-      await ref.read(tradeRepositoryProvider).proposeTrade(
-            tradeId: widget.trade.id,
-            toUserId: uid,
-            toOwnedMonsterId: selected.id,
-            toMonsterName: selected.monster.name,
-            toMonsterImagePath: selected.monster.imagePath,
-            toMonsterId: selected.monster.id,
-          );
+      await ref
+          .read(tradeControllerProvider)
+          .proposeTrade(trade: widget.trade, selected: selected);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Propuesta enviada. Esperando confirmación...')),
+        const SnackBar(
+          content: Text('Propuesta enviada. Esperando confirmación...'),
+        ),
       );
       widget.onDone();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
       setState(() => _executing = false);
     }
   }
@@ -944,10 +1011,14 @@ class _MonsterPickTile extends StatelessWidget {
         ),
         child: ListTile(
           leading: Image.asset(owned.monster.imagePath, width: 48, height: 48),
-          title: Text(owned.monster.name,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
-          subtitle: Text(owned.monster.rarity.label,
-              style: TextStyle(color: owned.monster.rarity.color, fontSize: 12)),
+          title: Text(
+            owned.monster.name,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            owned.monster.rarity.label,
+            style: TextStyle(color: owned.monster.rarity.color, fontSize: 12),
+          ),
           onTap: enabled ? onTap : null,
         ),
       ),

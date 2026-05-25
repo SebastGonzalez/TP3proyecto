@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prueba1/monsters/domain/trade_request.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
@@ -7,6 +8,7 @@ import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/app_drawer.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/providers/trade_controller_provider.dart';
 import 'package:prueba1/presentation/providers/trade_provider.dart';
 import 'package:prueba1/presentation/widgets/coins_badge.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
@@ -29,7 +31,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool _tradeCheckDone = false;
+  final Set<String> _revealingTradeKeys = {};
 
   void _openDrawerIfRequested() {
     if (!ref.read(reopenDrawerOnHomeProvider)) return;
@@ -40,28 +42,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
-  Future<void> _checkUnseenTrades() async {
-    if (_tradeCheckDone) return;
-    _tradeCheckDone = true;
+  Future<void> _checkUnseenTrades(List<TradeRequest> unseen) async {
+    final uid = ref.read(userProvider).value?.uid;
+    if (uid == null) return;
 
-    final unseen = await ref.read(unseenCompletedTradesProvider.future);
-    if (unseen.isEmpty || !mounted) return;
+    final suppressed = ref.read(suppressedCompletedTradeRevealIdsProvider);
+    final pending = [
+      for (final trade in unseen)
+        if (!suppressed.contains(
+              completedTradeRevealSuppressionKey(uid, trade.id),
+            ) &&
+            _revealingTradeKeys.add(
+              completedTradeRevealSuppressionKey(uid, trade.id),
+            ))
+          trade,
+    ];
+    if (pending.isEmpty || !mounted) return;
 
     final catalog = await ref.read(monstersProvider.future);
 
-    for (final trade in unseen) {
+    for (final trade in pending) {
       if (!mounted) return;
-      final monsterId = trade.receivedMonsterId;
-      if (monsterId == null) continue;
+      final tradeKey = completedTradeRevealSuppressionKey(uid, trade.id);
+      final monsterId = trade.receivedMonsterIdForUser(uid);
+      final monsterName = trade.receivedMonsterNameForUser(uid);
 
-      final received = catalog.where((m) => m.id == monsterId).firstOrNull;
+      final received = monsterId != null
+          ? catalog.where((m) => m.id == monsterId).firstOrNull
+          : monsterName != null
+          ? catalog.where((m) => m.name == monsterName).firstOrNull
+          : null;
       if (received != null && mounted) {
         await showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
+              borderRadius: BorderRadius.circular(20),
+            ),
             title: const Row(
               children: [
                 Icon(Icons.swap_horiz, color: Color(0xFF4CAF50)),
@@ -70,7 +88,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             ),
             content: Text(
-              'Mientras estabas fuera, tu intercambio se completó.\n\n'
+              'Tu intercambio fue aceptado y completado.\n\n'
               'Recibiste: ${received.name}',
             ),
             actions: [
@@ -85,7 +103,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         await showGatchaReveal(context, received);
       }
 
-      await ref.read(tradeRepositoryProvider).markSeen(trade.id);
+      await ref.read(tradeControllerProvider).markCompletedRevealSeen(trade);
+      _revealingTradeKeys.remove(tradeKey);
     }
   }
 
@@ -97,9 +116,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     ref.listen(unseenCompletedTradesProvider, (_, next) {
       if (next.hasValue && next.value!.isNotEmpty) {
-        _checkUnseenTrades();
+        _checkUnseenTrades(next.value!);
       }
     });
+
+    final unseenCompleted = ref.watch(unseenCompletedTradesProvider);
+    if (unseenCompleted.hasValue && unseenCompleted.value!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _checkUnseenTrades(unseenCompleted.value!);
+      });
+    }
 
     ref.watch(authUsernameBootstrapProvider);
     final coins = ref.watch(coinProvider);
@@ -113,7 +140,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const DecoratedBox(decoration: BoxDecoration(gradient: _kHomeGradient)),
+          const DecoratedBox(
+            decoration: BoxDecoration(gradient: _kHomeGradient),
+          ),
           if (companionTint != null)
             DecoratedBox(
               decoration: BoxDecoration(
@@ -169,10 +198,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 class _HomeTopBar extends StatelessWidget {
-  const _HomeTopBar({
-    required this.coins,
-    required this.onMenuPressed,
-  });
+  const _HomeTopBar({required this.coins, required this.onMenuPressed});
 
   final int coins;
   final VoidCallback onMenuPressed;
@@ -215,13 +241,10 @@ class _CharacterHub extends ConsumerWidget {
       builder: (context, constraints) {
         final imageWidth = constraints.maxWidth * 0.62;
         final onLeft = companion?.side != HomeCompanionSide.right;
-        final companionWidth =
-            imageWidth * 1.05 * (companion?.scale ?? 1);
+        final companionWidth = imageWidth * 1.05 * (companion?.scale ?? 1);
         final shiftX = companion == null
             ? 0.0
-            : (onLeft ? 1 : -1) *
-                imageWidth *
-                _kHomeShiftWithCompanionFactor;
+            : (onLeft ? 1 : -1) * imageWidth * _kHomeShiftWithCompanionFactor;
 
         return Transform.translate(
           offset: Offset(shiftX, 0),
