@@ -166,8 +166,9 @@ class TradeRepository {
         'fromReceivedMonsterName': fromReceivedMonsterName,
         'toReceivedMonsterId': toReceivedMonsterId,
         'toReceivedMonsterName': toReceivedMonsterName,
-        'fromRevealSeen': false,
+        'fromRevealSeen': true,
         'toRevealSeen': false,
+        'seen': true,
       });
     });
   }
