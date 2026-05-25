@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/core/menu/menu_item.dart';
-import 'package:prueba1/core/services/auth_service.dart';
+import 'package:prueba1/presentation/providers/auth_controller_provider.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/default_user_avatar.dart';
@@ -43,8 +43,7 @@ class AppDrawer extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: OutlinedButton.icon(
             onPressed: () async {
-              clearLoggedInUsername(ref);
-              await AuthService.logout();
+              await ref.read(authControllerProvider).logout();
             },
             icon: const Icon(Icons.logout, size: 20),
             label: const Text('Cerrar sesión'),
@@ -93,10 +92,7 @@ class _DrawerProfileHeader extends StatelessWidget {
               username,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -115,10 +111,7 @@ class _DrawerProfileHeader extends StatelessWidget {
 }
 
 class _DrawerSection extends StatelessWidget {
-  const _DrawerSection({
-    required this.section,
-    required this.onItemTap,
-  });
+  const _DrawerSection({required this.section, required this.onItemTap});
 
   final MenuSection section;
   final void Function(String route) onItemTap;
@@ -126,10 +119,10 @@ class _DrawerSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
-          color: Theme.of(context).colorScheme.outline,
-        );
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1.2,
+      color: Theme.of(context).colorScheme.outline,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -139,20 +132,14 @@ class _DrawerSection extends StatelessWidget {
           child: Text(section.label, style: labelStyle),
         ),
         for (final item in section.items)
-          _DrawerMenuTile(
-            item: item,
-            onTap: () => onItemTap(item.route),
-          ),
+          _DrawerMenuTile(item: item, onTap: () => onItemTap(item.route)),
       ],
     );
   }
 }
 
 class _DrawerMenuTile extends StatelessWidget {
-  const _DrawerMenuTile({
-    required this.item,
-    required this.onTap,
-  });
+  const _DrawerMenuTile({required this.item, required this.onTap});
 
   final MenuItem item;
   final VoidCallback onTap;

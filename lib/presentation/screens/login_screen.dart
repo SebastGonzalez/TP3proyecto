@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/core/services/auth_service.dart';
-import 'package:prueba1/presentation/providers/auth_provider.dart';
+import 'package:prueba1/presentation/providers/auth_controller_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -31,56 +30,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
- // En login_screen.dart reemplaza tu función _login por esta:
-void _login() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
-
-  if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+  void _login() async {
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
+      _errorMessage = null;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Nombre de usuario y contraseña son requeridos'), backgroundColor: Colors.red),
-    );
-    return;
-  }
 
-  final username = _usernameController.text.trim();
+    final username = _usernameController.text.trim();
 
-  try {
-    final user = await AuthService.loginWithUsername(
-      username: username,
-      password: _passwordController.text,
-    );
+    try {
+      final user = await ref
+          .read(authControllerProvider)
+          .login(
+            username: _usernameController.text,
+            password: _passwordController.text,
+          );
 
-    if (user != null && mounted) {
-      setLoggedInUsername(ref, username);
+      if (user != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('¡Bienvenido, $username!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.go('/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString();
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('¡Bienvenido, $username!'),
-          backgroundColor: Colors.green,
+          content: Text(_errorMessage ?? 'Error desconocido'),
+          backgroundColor: Colors.red,
         ),
       );
-      context.go('/home');
-    }
-  } catch (e) {
-    setState(() {
-      _errorMessage = e.toString();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_errorMessage ?? 'Error desconocido'), backgroundColor: Colors.red),
-    );
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,10 +87,7 @@ void _login() async {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset(
-                  'assets/images/LogoJuego.png',
-                  width: 200,
-                ),
+                Image.asset('assets/images/LogoJuego.png', width: 200),
                 const SizedBox(height: 40),
                 TextField(
                   controller: _usernameController,
@@ -133,9 +124,7 @@ void _login() async {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text(
                             'Login',
@@ -152,7 +141,9 @@ void _login() async {
                   children: [
                     const Text('¿No tienes cuenta? '),
                     TextButton(
-                      onPressed: _isLoading ? null : () => context.go('/signup'),
+                      onPressed: _isLoading
+                          ? null
+                          : () => context.go('/signup'),
                       child: const Text('Registrate aqui'),
                     ),
                   ],
@@ -181,10 +172,7 @@ void _login() async {
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.orange.shade400, width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 }

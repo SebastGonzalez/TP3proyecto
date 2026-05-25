@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/presentation/providers/auth_provider.dart';
-import 'package:prueba1/presentation/providers/my_user.provider.dart';
-import 'package:prueba1/core/services/auth_service.dart';
+import 'package:prueba1/presentation/providers/auth_controller_provider.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -17,7 +15,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -35,71 +32,51 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
-  // Busca la función _register() en signup_screen.dart y reemplázala por esta:
-void _register() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
+  void _register() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-  // Validaciones locales básicas antes de ir a Firebase
-  if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-    _showError('Nombre de usuario y contraseña son requeridos');
-    return;
-  }
-  if (_passwordController.text != _confirmPasswordController.text) {
-    _showError('Las contraseñas no coinciden');
-    return;
-  }
-  if (_usernameController.text.length < 3) {
-    _showError('El nombre de usuario debe tener al menos 3 caracteres');
-    return;
-  }
+    final username = _usernameController.text.trim();
 
-  final username = _usernameController.text.trim();
-
-  try {
-    final user = await AuthService.registerWithUsername(
-      username: username,
-      password: _passwordController.text,
-    );
-
-    if (user != null && mounted) {
-      await ref.read(userRepositoryProvider).createUser(
-            uid: user.uid,
-            username: username,
+    try {
+      final user = await ref
+          .read(authControllerProvider)
+          .register(
+            username: _usernameController.text,
+            password: _passwordController.text,
+            confirmPassword: _confirmPasswordController.text,
           );
-      ref.invalidate(myUserProvider);
-      setLoggedInUsername(ref, username);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('¡Bienvenido, $username!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      context.go('/home');
-    }
-  } catch (e) {
-    _showError(e.toString());
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+
+      if (user != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('¡Bienvenido, $username!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.go('/home');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showError(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-}
 
-// Función auxiliar para no repetir código de errores
-void _showError(String message) {
-  setState(() {
-    _errorMessage = message;
-    _isLoading = false;
-  });
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message), backgroundColor: Colors.red),
-  );
-}
+  void _showError(String message) {
+    setState(() {
+      _isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,16 +95,11 @@ void _showError(String message) {
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: Colors.orange.shade400, width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-      ),
+      appBar: AppBar(elevation: 0),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -136,10 +108,7 @@ void _showError(String message) {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Image.asset(
-                  'assets/images/LogoJuego.png',
-                  width: 150,
-                ),
+                Image.asset('assets/images/LogoJuego.png', width: 150),
                 const SizedBox(height: 30),
                 Text(
                   'Crear Cuenta',
@@ -192,9 +161,7 @@ void _showError(String message) {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text(
                             'Registrarse',
