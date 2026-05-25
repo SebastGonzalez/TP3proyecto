@@ -76,6 +76,16 @@ void main() {
 
       expect(trade.revealSeenForUser('user-a'), isTrue);
     });
+
+    test('legacy seen still wins if from reveal flag is false', () {
+      final trade = _trade({
+        'fromUserId': 'user-a',
+        'fromRevealSeen': false,
+        'seen': true,
+      });
+
+      expect(trade.revealSeenForUser('user-a'), isTrue);
+    });
   });
 }
 

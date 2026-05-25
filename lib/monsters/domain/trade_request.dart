@@ -114,7 +114,7 @@ class TradeRequest {
 
   bool revealSeenForUser(String userId) {
     if (userId == fromUserId) {
-      return fromRevealSeen ?? seen ?? false;
+      return fromRevealSeen == true || seen == true;
     }
     if (userId == toUserId) {
       return toRevealSeen ?? false;
