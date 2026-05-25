@@ -6,7 +6,10 @@ import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/app_drawer.dart';
+import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/presentation/providers/trade_provider.dart';
 import 'package:prueba1/presentation/widgets/coins_badge.dart';
+import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
 
 /// Cuánto se corre el personaje a la derecha si hay compañero (fracción del ancho del PJ).
 const _kHomeShiftWithCompanionFactor = 0.08;
@@ -26,6 +29,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _tradeCheckDone = false;
 
   void _openDrawerIfRequested() {
     if (!ref.read(reopenDrawerOnHomeProvider)) return;
@@ -36,10 +40,65 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
+  Future<void> _checkUnseenTrades() async {
+    if (_tradeCheckDone) return;
+    _tradeCheckDone = true;
+
+    final unseen = await ref.read(unseenCompletedTradesProvider.future);
+    if (unseen.isEmpty || !mounted) return;
+
+    final catalog = await ref.read(monstersProvider.future);
+
+    for (final trade in unseen) {
+      if (!mounted) return;
+      final monsterId = trade.receivedMonsterId;
+      if (monsterId == null) continue;
+
+      final received = catalog.where((m) => m.id == monsterId).firstOrNull;
+      if (received != null && mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20)),
+            title: const Row(
+              children: [
+                Icon(Icons.swap_horiz, color: Color(0xFF4CAF50)),
+                SizedBox(width: 8),
+                Text('Trade exitoso'),
+              ],
+            ),
+            content: Text(
+              'Mientras estabas fuera, tu intercambio se completó.\n\n'
+              'Recibiste: ${received.name}',
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Ver monstruo'),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+        await showGatchaReveal(context, received);
+      }
+
+      await ref.read(tradeRepositoryProvider).markSeen(trade.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<bool>(reopenDrawerOnHomeProvider, (previous, next) {
       if (next == true) _openDrawerIfRequested();
+    });
+
+    ref.listen(unseenCompletedTradesProvider, (_, next) {
+      if (next.hasValue && next.value!.isNotEmpty) {
+        _checkUnseenTrades();
+      }
     });
 
     ref.watch(authUsernameBootstrapProvider);

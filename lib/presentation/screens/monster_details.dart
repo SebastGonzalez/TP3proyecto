@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/monsters/domain/trade_request.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
+import 'package:prueba1/presentation/providers/trade_provider.dart';
+import 'package:prueba1/presentation/screens/market_screen.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 
 class MonsterDetails extends ConsumerWidget {
@@ -59,15 +62,19 @@ class MonsterDetails extends ConsumerWidget {
             ),
         ],
       ),
-      body: _DetailView(monster: monster),
+      body: _DetailView(monster: monster, ref: ref),
     );
   }
 }
 
 class _DetailView extends StatelessWidget {
-  const _DetailView({required this.monster});
+  const _DetailView({required this.monster, required this.ref});
 
   final Monster monster;
+  final WidgetRef ref;
+
+  bool get _isOwnedInstance =>
+      monster.ownedInstanceId != null && monster.ownedInstanceId!.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +143,10 @@ class _DetailView extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    if (_isOwnedInstance) ...[
+                      const Spacer(),
+                      _TradeButton(monster: monster, ref: ref),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -166,6 +177,71 @@ class _DetailView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TradeButton extends StatelessWidget {
+  const _TradeButton({required this.monster, required this.ref});
+
+  final Monster monster;
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    final pendingTrades = ref.watch(myPendingTradesProvider).value ?? [];
+    final proposedTrades = ref.watch(myProposedTradesProvider).value ?? [];
+
+    final inTrade = pendingTrades.any(
+            (t) => t.fromOwnedMonsterId == monster.ownedInstanceId) ||
+        proposedTrades.any(
+            (t) => t.fromOwnedMonsterId == monster.ownedInstanceId);
+
+    if (inTrade) {
+      final trade = pendingTrades.cast<TradeRequest?>().firstWhere(
+                (t) => t!.fromOwnedMonsterId == monster.ownedInstanceId,
+                orElse: () => null,
+              ) ??
+          proposedTrades.cast<TradeRequest?>().firstWhere(
+                (t) => t!.fromOwnedMonsterId == monster.ownedInstanceId,
+                orElse: () => null,
+              );
+      return FilledButton.icon(
+        onPressed: trade != null
+            ? () => MarketScreen.openTradeCode(context, trade)
+            : null,
+        icon: const Icon(Icons.hourglass_top, size: 14),
+        label: const Text('En intercambio'),
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF795548),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          textStyle:
+              const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      );
+    }
+
+    return OutlinedButton.icon(
+      onPressed: () => MarketScreen.createTradeFor(
+        context,
+        ref,
+        ownedMonsterId: monster.ownedInstanceId!,
+        monsterName: monster.name,
+        monsterImagePath: monster.imagePath,
+      ),
+      icon: const Icon(Icons.swap_horiz, size: 16),
+      label: const Text('Intercambiar'),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
       ),
     );
   }
