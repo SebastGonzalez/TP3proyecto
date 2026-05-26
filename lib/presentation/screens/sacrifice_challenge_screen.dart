@@ -4,13 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
 import 'package:prueba1/monsters/domain/sacrifice_slot.dart';
-import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
-import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
+import 'package:prueba1/features/monsters/application/providers/captured_monsters_provider.dart';
+import 'package:prueba1/features/monsters/application/providers/owned_monsters_provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/presentation/providers/sacrifice_progress_provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
-import 'package:prueba1/presentation/widgets/monster_card_tile.dart';
+import 'package:prueba1/features/monsters/presentation/widgets/monster_card_tile.dart';
 
 class SacrificeChallengeScreen extends ConsumerStatefulWidget {
   const SacrificeChallengeScreen({super.key, required this.challenge});

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/core/domain/owned_monster.dart';
-import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
+import 'package:prueba1/features/monsters/application/providers/captured_monsters_provider.dart';
+import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
+import 'package:prueba1/features/monsters/presentation/widgets/monster_card_tile.dart';
+import 'package:prueba1/features/monsters/presentation/widgets/monster_collection_skeleton.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
-import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
-import 'package:prueba1/presentation/widgets/monster_card_tile.dart';
-import 'package:prueba1/presentation/widgets/monster_collection_skeleton.dart';
 
 class MyMonsterScreen extends ConsumerStatefulWidget {
   const MyMonsterScreen({super.key});

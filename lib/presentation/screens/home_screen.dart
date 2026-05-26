@@ -10,7 +10,7 @@ import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/app_drawer.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
-import 'package:prueba1/presentation/providers/mymonster_provider.dart';
+import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/trade_controller_provider.dart';
 import 'package:prueba1/presentation/providers/trade_provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
