@@ -9,7 +9,7 @@ import 'package:prueba1/features/auth/presentation/screens/login_screen.dart';
 import 'package:prueba1/features/auth/presentation/screens/signup_screen.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
-import 'package:prueba1/presentation/screens/gatcha_screen.dart';
+import 'package:prueba1/features/gatcha/presentation/screens/gatcha_screen.dart';
 import 'package:prueba1/presentation/screens/game_screen.dart';
 import 'package:prueba1/presentation/screens/home_screen.dart';
 import 'package:prueba1/presentation/screens/market_screen.dart';
