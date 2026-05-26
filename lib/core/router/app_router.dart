@@ -3,14 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prueba1/core/services/auth_service.dart';
+import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
+import 'package:prueba1/features/auth/data/services/auth_service.dart';
+import 'package:prueba1/features/auth/presentation/screens/login_screen.dart';
+import 'package:prueba1/features/auth/presentation/screens/signup_screen.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
-import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/screens/gatcha_screen.dart';
 import 'package:prueba1/presentation/screens/game_screen.dart';
 import 'package:prueba1/presentation/screens/home_screen.dart';
-import 'package:prueba1/presentation/screens/login_screen.dart';
 import 'package:prueba1/presentation/screens/market_screen.dart';
 import 'package:prueba1/presentation/screens/monster_details.dart';
 import 'package:prueba1/presentation/screens/my_monster_screen.dart';
@@ -20,7 +21,6 @@ import 'package:prueba1/presentation/screens/sacrifice_challenge_screen.dart';
 import 'package:prueba1/presentation/screens/sacrifice_screen.dart';
 import 'package:prueba1/presentation/screens/settings_screen.dart';
 import 'package:prueba1/presentation/screens/shop_screen.dart';
-import 'package:prueba1/presentation/screens/signup_screen.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 
 /// Notifica a GoRouter cuando cambia la sesión de Firebase Auth.

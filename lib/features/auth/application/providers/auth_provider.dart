@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:prueba1/core/services/auth_service.dart';
+import 'package:prueba1/features/auth/data/services/auth_service.dart';
 
 // Provider que expone el usuario actual
 final userProvider = StreamProvider<User?>((ref) {

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/data/user_repository.dart';
 import 'package:prueba1/core/domain/my_user.dart';
-import 'package:prueba1/core/services/auth_service.dart';
-import 'package:prueba1/presentation/providers/auth_provider.dart';
+import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
+import 'package:prueba1/features/auth/data/services/auth_service.dart';
 import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 
 final userRepositoryProvider = Provider((ref) => UserRepository());

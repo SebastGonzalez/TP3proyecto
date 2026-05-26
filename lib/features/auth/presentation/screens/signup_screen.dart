@@ -1,39 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/presentation/providers/auth_controller_provider.dart';
+import 'package:prueba1/features/auth/application/controllers/auth_controller_provider.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends ConsumerStatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   late TextEditingController _usernameController;
   late TextEditingController _passwordController;
+  late TextEditingController _confirmPasswordController;
   bool _isLoading = false;
-  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
   }
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _login() async {
+  void _register() async {
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
     });
 
     final username = _usernameController.text.trim();
@@ -41,9 +42,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final user = await ref
           .read(authControllerProvider)
-          .login(
+          .register(
             username: _usernameController.text,
             password: _passwordController.text,
+            confirmPassword: _confirmPasswordController.text,
           );
 
       if (user != null && mounted) {
@@ -57,15 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _errorMessage = e.toString();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_errorMessage ?? 'Error desconocido'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showError(e.toString());
     } finally {
       if (mounted) {
         setState(() {
@@ -75,89 +69,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset('assets/images/LogoJuego.png', width: 200),
-                const SizedBox(height: 40),
-                TextField(
-                  controller: _usernameController,
-                  enabled: !_isLoading,
-                  decoration: _fieldDecoration.copyWith(
-                    hintText: 'Nombre de usuario',
-                    prefixIcon: const Icon(Icons.person_outline),
-                  ),
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: 14),
-                TextField(
-                  controller: _passwordController,
-                  enabled: !_isLoading,
-                  obscureText: true,
-                  decoration: _fieldDecoration.copyWith(
-                    hintText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                  ),
-                  textInputAction: TextInputAction.done,
-                ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('¿No tienes cuenta? '),
-                    TextButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => context.go('/signup'),
-                      child: const Text('Registrate aqui'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+  void _showError(String message) {
+    setState(() {
+      _isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
-  InputDecoration get _fieldDecoration {
-    return InputDecoration(
+  @override
+  Widget build(BuildContext context) {
+    final fieldDecoration = InputDecoration(
       filled: true,
       fillColor: Colors.grey.shade100,
       border: OutlineInputBorder(
@@ -173,6 +96,98 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         borderSide: BorderSide(color: Colors.orange.shade400, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
+
+    return Scaffold(
+      appBar: AppBar(elevation: 0),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset('assets/images/LogoJuego.png', width: 150),
+                const SizedBox(height: 30),
+                Text(
+                  'Crear Cuenta',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _usernameController,
+                  enabled: !_isLoading,
+                  decoration: fieldDecoration.copyWith(
+                    hintText: 'Nombre de usuario',
+                    prefixIcon: const Icon(Icons.person_outline),
+                  ),
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _passwordController,
+                  enabled: !_isLoading,
+                  obscureText: true,
+                  decoration: fieldDecoration.copyWith(
+                    hintText: 'Contraseña',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                  ),
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _confirmPasswordController,
+                  enabled: !_isLoading,
+                  obscureText: true,
+                  decoration: fieldDecoration.copyWith(
+                    hintText: 'Confirmar Contraseña',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                  ),
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _register,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'Registrarse',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('¿Ya tienes cuenta? '),
+                    TextButton(
+                      onPressed: _isLoading ? null : () => context.go('/login'),
+                      child: const Text('Inicia sesión aquí'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
