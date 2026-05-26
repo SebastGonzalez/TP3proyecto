@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:prueba1/features/gatcha/domain/gatcha_drop_config.dart';
 import 'package:prueba1/features/gatcha/domain/roll_strategy.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
-import 'package:prueba1/monsters/domain/rarity.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
 /// Tirada en dos pasos: rareza según [GatchaDropConfig.rarityRates], luego
 /// monstruo ponderado por [GatchaDropConfig.monsterWeights] (default 1).

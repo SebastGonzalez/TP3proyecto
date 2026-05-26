@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/domain/my_user.dart';
-import 'package:prueba1/core/domain/owned_monster.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/owned_monster.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';

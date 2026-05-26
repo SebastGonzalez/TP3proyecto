@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/core/domain/owned_monster.dart';
+import 'package:prueba1/features/monsters/domain/models/owned_monster.dart';
 import 'package:prueba1/monsters/domain/trade_request.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/trade_provider.dart';

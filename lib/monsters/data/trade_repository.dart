@@ -149,8 +149,14 @@ class TradeRepository {
         );
       }
 
-      tx.update(fromMonRef, {'ownerId': toUserId});
-      tx.update(toMonRef, {'ownerId': fromUserId});
+      tx.update(fromMonRef, {
+        'ownerId': toUserId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      tx.update(toMonRef, {
+        'ownerId': fromUserId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       final fromReceivedMonsterId = toMonSnap.data()!['monsterId'] as String?;
       final fromReceivedMonsterName = toMonSnap.data()!['name'] as String?;

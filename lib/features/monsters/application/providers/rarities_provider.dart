@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/monsters/data/rarity_repository.dart';
-import 'package:prueba1/monsters/domain/rarity.dart';
+import 'package:prueba1/features/monsters/data/repositories/rarity_repository.dart';
+import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
 final rarityRepositoryProvider = Provider((ref) => RarityRepository());
 

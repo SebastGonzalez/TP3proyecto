@@ -5,7 +5,7 @@ import 'package:prueba1/monsters/domain/trade_request.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
 import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
 import 'package:prueba1/features/shop/presentation/widgets/coins_badge.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/app_drawer.dart';

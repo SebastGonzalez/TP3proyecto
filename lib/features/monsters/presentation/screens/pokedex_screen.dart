@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 

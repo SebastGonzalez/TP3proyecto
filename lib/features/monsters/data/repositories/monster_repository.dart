@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
-import 'package:prueba1/monsters/domain/rarity.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
 /// Catálogo en `monsters`.
 ///

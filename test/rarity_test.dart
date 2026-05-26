@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prueba1/monsters/domain/rarity.dart';
+import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
 void main() {
   group('RarityCatalog', () {

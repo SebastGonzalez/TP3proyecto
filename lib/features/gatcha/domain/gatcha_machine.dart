@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:prueba1/features/gatcha/domain/gatcha_drop_config.dart';
 import 'package:prueba1/features/gatcha/domain/roll_strategy.dart';
 import 'package:prueba1/features/gatcha/domain/strategies/tiered_gatcha_strategy.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
-import 'package:prueba1/monsters/domain/rarity.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
 /// Una máquina de gatcha. Es sólo el "contenedor" con datos de presentación
 /// (nombre, costo, colores) y delega la lógica del roll en una `RollStrategy`.

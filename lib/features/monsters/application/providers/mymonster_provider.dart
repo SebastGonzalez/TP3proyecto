@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/monsters/data/monster_repository.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/data/repositories/monster_repository.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/monsters/application/providers/rarities_provider.dart';
 
 final monsterRepositoryProvider = Provider((ref) => MonsterRepository());

@@ -1,5 +1,5 @@
-import 'package:prueba1/monsters/domain/monster.dart';
-import 'package:prueba1/monsters/domain/rarity.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
 /// Requisito de un espacio en un desafío SBC.
 sealed class SacrificeSlotRequirement {

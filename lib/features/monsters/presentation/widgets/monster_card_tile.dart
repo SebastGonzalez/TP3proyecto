@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 
 /// Card tile matching the My Monsters grid style (image, name, rarity).
 class MonsterCardTile extends StatelessWidget {

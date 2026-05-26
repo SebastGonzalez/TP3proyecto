@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/core/domain/owned_monster.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/owned_monster.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/monsters/domain/trade_request.dart';
 import 'package:prueba1/features/monsters/application/providers/captured_monsters_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';

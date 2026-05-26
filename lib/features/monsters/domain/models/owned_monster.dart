@@ -1,4 +1,4 @@
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 
 /// Una instancia capturada: un documento en `owned_monsters/{id}`.
 class OwnedMonster {

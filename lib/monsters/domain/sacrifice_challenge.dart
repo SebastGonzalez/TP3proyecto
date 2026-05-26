@@ -1,4 +1,4 @@
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/monsters/domain/sacrifice_slot.dart';
 
 /// A single SBC-style challenge: sacrifice monsters matching [slots]

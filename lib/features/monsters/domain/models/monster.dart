@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:prueba1/monsters/domain/rarity.dart';
+import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
 /// Lado de la home donde se dibuja el compañero (respecto al personaje).
 /// Solo se persiste en el catálogo `monsters/{id}`; las instancias en

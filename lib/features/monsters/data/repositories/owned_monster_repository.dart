@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:prueba1/core/domain/my_user.dart';
-import 'package:prueba1/core/domain/owned_monster.dart';
-import 'package:prueba1/monsters/domain/monster.dart';
+import 'package:prueba1/features/monsters/domain/models/owned_monster.dart';
+import 'package:prueba1/features/monsters/domain/models/monster.dart';
 
 /// Colección `owned_monsters`: una fila por cada captura (gatcha, recompensa, etc.).
 ///
