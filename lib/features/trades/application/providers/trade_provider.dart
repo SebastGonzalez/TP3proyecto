@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:prueba1/monsters/data/trade_repository.dart';
-import 'package:prueba1/monsters/domain/trade_request.dart';
+import 'package:prueba1/features/trades/data/repositories/trade_repository.dart';
+import 'package:prueba1/features/trades/domain/models/trade_request.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
 
 final tradeRepositoryProvider = Provider((ref) => TradeRepository());

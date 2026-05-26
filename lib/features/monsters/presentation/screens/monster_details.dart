@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
-import 'package:prueba1/monsters/domain/trade_request.dart';
+import 'package:prueba1/features/trades/domain/models/trade_request.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
-import 'package:prueba1/presentation/providers/trade_provider.dart';
-import 'package:prueba1/presentation/screens/market_screen.dart';
+import 'package:prueba1/features/trades/application/providers/trade_provider.dart';
+import 'package:prueba1/features/trades/presentation/screens/market_screen.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 
 class MonsterDetails extends ConsumerWidget {

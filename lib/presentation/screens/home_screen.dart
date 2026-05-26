@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/domain/my_user.dart';
-import 'package:prueba1/monsters/domain/trade_request.dart';
+import 'package:prueba1/features/trades/domain/models/trade_request.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
 import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
 import 'package:prueba1/features/shop/presentation/widgets/coins_badge.dart';
@@ -11,8 +11,8 @@ import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/app_drawer.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
-import 'package:prueba1/presentation/providers/trade_controller_provider.dart';
-import 'package:prueba1/presentation/providers/trade_provider.dart';
+import 'package:prueba1/features/trades/application/controllers/trade_controller_provider.dart';
+import 'package:prueba1/features/trades/application/providers/trade_provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
 
 /// Cuánto se corre el personaje a la derecha si hay compañero (fracción del ancho del PJ).

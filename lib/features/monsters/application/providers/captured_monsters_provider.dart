@@ -3,7 +3,7 @@ import 'package:prueba1/features/monsters/domain/models/owned_monster.dart';
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/owned_monsters_provider.dart';
-import 'package:prueba1/presentation/providers/trade_controller_provider.dart';
+import 'package:prueba1/features/trades/application/controllers/trade_controller_provider.dart';
 
 /// Colección del jugador con estado de carga/error (fuente: [ownedMonstersProvider]).
 final capturedMonstersAsyncProvider = Provider<AsyncValue<List<OwnedMonster>>>((

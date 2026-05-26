@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prueba1/monsters/domain/trade_request.dart';
+import 'package:prueba1/features/trades/domain/models/trade_request.dart';
 
 void main() {
   group('TradeRequest parsing', () {

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:prueba1/monsters/domain/trade_request.dart';
+import 'package:prueba1/features/trades/domain/models/trade_request.dart';
 
 /// Repositorio de trades (colección `trades`).
 ///
