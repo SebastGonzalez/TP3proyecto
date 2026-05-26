@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/domain/my_user.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
-import 'package:prueba1/presentation/providers/profile_stats_provider.dart';
-import 'package:prueba1/presentation/widgets/complete_dex_badge.dart';
+import 'package:prueba1/features/profile/application/providers/profile_stats_provider.dart';
+import 'package:prueba1/features/profile/presentation/widgets/complete_dex_badge.dart';
 import 'package:prueba1/presentation/widgets/default_user_avatar.dart';
 
 class ProfileScreen extends ConsumerWidget {

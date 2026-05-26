@@ -15,7 +15,7 @@ import 'package:prueba1/presentation/screens/market_screen.dart';
 import 'package:prueba1/presentation/screens/monster_details.dart';
 import 'package:prueba1/presentation/screens/my_monster_screen.dart';
 import 'package:prueba1/presentation/screens/pokedex_screen.dart';
-import 'package:prueba1/presentation/screens/profile_screen.dart';
+import 'package:prueba1/features/profile/presentation/screens/profile_screen.dart';
 import 'package:prueba1/presentation/screens/sacrifice_challenge_screen.dart';
 import 'package:prueba1/presentation/screens/sacrifice_screen.dart';
 import 'package:prueba1/presentation/screens/settings_screen.dart';
