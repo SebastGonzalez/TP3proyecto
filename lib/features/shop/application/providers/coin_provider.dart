@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/core/data/user_repository.dart';
-import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/core/application/providers/my_user.provider.dart';
 
 /// Saldo actual del jugador (Firestore vía [myUserProvider]).
 final coinProvider = Provider<int>((ref) {

@@ -4,7 +4,7 @@ import 'package:prueba1/core/domain/my_user.dart';
 import 'package:prueba1/features/monsters/domain/models/owned_monster.dart';
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
-import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/core/application/providers/my_user.provider.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/owned_monsters_provider.dart';
 

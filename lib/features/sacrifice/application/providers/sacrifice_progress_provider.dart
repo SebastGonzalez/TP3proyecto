@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
-import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/core/application/providers/my_user.provider.dart';
 
 /// SBC completados del jugador (persistidos en `users.completedSbcIds`).
 class SacrificeProgressNotifier extends Notifier<Set<String>> {

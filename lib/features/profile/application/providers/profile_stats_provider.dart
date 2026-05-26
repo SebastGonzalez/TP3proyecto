@@ -7,7 +7,7 @@ import 'package:prueba1/features/monsters/application/providers/captured_monster
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/rarities_provider.dart';
 import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
-import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/core/application/providers/my_user.provider.dart';
 
 /// Estadísticas del perfil calculadas desde datos reales de la app.
 class ProfileStats {

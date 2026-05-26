@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:prueba1/core/router/app_router.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
 import 'package:prueba1/features/auth/data/services/auth_service.dart';
-import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/core/application/providers/my_user.provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
