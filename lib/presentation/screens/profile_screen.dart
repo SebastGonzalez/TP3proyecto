@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prueba1/core/domain/my_user.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/presentation/providers/profile_stats_provider.dart';
 import 'package:prueba1/presentation/widgets/complete_dex_badge.dart';
@@ -111,6 +112,9 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(profileStatsProvider);
+    final selectedCharacter = resolveCharacterImagePath(
+      ref.watch(myUserProvider).value?.characterImagePath,
+    );
 
     return Scaffold(
       body: CustomScrollView(
@@ -125,10 +129,10 @@ class ProfileScreen extends ConsumerWidget {
                 onPressed: stats.isLoading
                     ? null
                     : () => _showEditUsernameDialog(
-                          context,
-                          ref,
-                          stats.displayName,
-                        ),
+                        context,
+                        ref,
+                        stats.displayName,
+                      ),
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -191,6 +195,39 @@ class ProfileScreen extends ConsumerWidget {
                           value: '${stats.legendaryCount}',
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 24),
+                    const _SectionLabel('PERSONAJE DE HOME'),
+                    const SizedBox(height: 12),
+                    _CharacterSelector(
+                      selectedPath: selectedCharacter,
+                      onSelected: (path) async {
+                        try {
+                          await ref
+                              .read(myUserProvider.notifier)
+                              .updateCharacterImagePath(path);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Personaje actualizado'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                e.toString().replaceFirst(
+                                  'ArgumentError: ',
+                                  '',
+                                ),
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(height: 24),
                     const _SectionLabel('INFORMACIÓN'),
@@ -283,6 +320,93 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
+class _CharacterSelector extends StatelessWidget {
+  const _CharacterSelector({
+    required this.selectedPath,
+    required this.onSelected,
+  });
+
+  final String selectedPath;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final path in availableCharacterImagePaths) ...[
+          Expanded(
+            child: _CharacterOption(
+              imagePath: path,
+              selected: path == selectedPath,
+              onTap: () => onSelected(path),
+            ),
+          ),
+          if (path != availableCharacterImagePaths.last)
+            const SizedBox(width: 10),
+        ],
+      ],
+    );
+  }
+}
+
+class _CharacterOption extends StatelessWidget {
+  const _CharacterOption({
+    required this.imagePath,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String imagePath;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: 'Elegir personaje',
+      child: Material(
+        color: selected ? Colors.orange.shade50 : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            height: 116,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected
+                    ? const Color(0xFFFF6B00)
+                    : Colors.grey.shade200,
+                width: selected ? 2 : 1,
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
+                ),
+                if (selected)
+                  const Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Icon(Icons.check_circle, color: Color(0xFFFF6B00)),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Ancho fijo de la columna de etiquetas para alinear los valores a la derecha.
 const _kInfoLabelWidth = 132.0;
 
@@ -316,10 +440,7 @@ class _InfoTile extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ),
         ],

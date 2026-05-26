@@ -15,7 +15,7 @@ import 'package:prueba1/monsters/domain/monster.dart';
 /// armar [OwnedMonster] desde el catálogo.
 class OwnedMonsterRepository {
   OwnedMonsterRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+    : _db = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _db;
 
@@ -45,6 +45,64 @@ class OwnedMonsterRepository {
       'name': template.name,
       'createdAt': Timestamp.now(),
     }, template);
+  }
+
+  /// Compra de gatcha: descuenta monedas y crea todas las capturas en una
+  /// transacción. Si no alcanzan las monedas o falla una escritura, no se
+  /// persiste ningún cambio parcial.
+  Future<List<OwnedMonster>> purchaseCaptures({
+    required String ownerId,
+    required int cost,
+    required List<Monster> monsters,
+    required List<Monster> catalog,
+  }) async {
+    final templates = <Monster>[];
+    for (final monster in monsters) {
+      final template = _resolveCatalog(catalog, monster.id);
+      if (template == null) {
+        throw StateError('Monstruo de catálogo no encontrado: ${monster.id}');
+      }
+      templates.add(template);
+    }
+
+    final userRef = _db.collection(usersCollectionPath).doc(ownerId);
+    final refs = [for (final _ in templates) _collection.doc()];
+
+    await _db.runTransaction((tx) async {
+      final userSnap = await tx.get(userRef);
+      if (!userSnap.exists) {
+        throw StateError('Usuario no encontrado');
+      }
+
+      final data = userSnap.data()!;
+      final coins = (data['coins'] as num?)?.toInt() ?? 1000;
+      if (coins < cost) {
+        throw InsufficientCoinsException(requiredCoins: cost);
+      }
+
+      tx.update(userRef, {
+        'coins': coins - cost,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      for (var i = 0; i < templates.length; i++) {
+        tx.set(
+          refs[i],
+          _newDocFields(ownerId: ownerId, template: templates[i]),
+        );
+      }
+    });
+
+    final capturedAt = Timestamp.now();
+    return [
+      for (var i = 0; i < templates.length; i++)
+        _fromDoc(refs[i].id, {
+          'ownerId': ownerId,
+          'monsterId': templates[i].id,
+          'name': templates[i].name,
+          'createdAt': capturedAt,
+        }, templates[i]),
+    ];
   }
 
   Stream<List<OwnedMonster>> watchByOwner({
@@ -103,7 +161,9 @@ class OwnedMonsterRepository {
     final rawList = data['monsters'] as List<dynamic>?;
     if (rawList == null || rawList.isEmpty) return;
 
-    final existing = await _collection.where('ownerId', isEqualTo: ownerId).get();
+    final existing = await _collection
+        .where('ownerId', isEqualTo: ownerId)
+        .get();
     if (existing.docs.isNotEmpty) {
       await userRef.update({
         'monsters': FieldValue.delete(),
@@ -119,8 +179,8 @@ class OwnedMonsterRepository {
       final monsterId = stamp.monsterId.isNotEmpty
           ? stamp.monsterId
           : (stamp.legacyName != null
-              ? _resolveCatalogByName(catalog, stamp.legacyName!)?.id
-              : null);
+                ? _resolveCatalogByName(catalog, stamp.legacyName!)?.id
+                : null);
       if (monsterId == null || monsterId.isEmpty) continue;
       final template = _resolveCatalog(catalog, monsterId);
       if (template == null) continue;
@@ -179,10 +239,7 @@ class OwnedMonsterRepository {
       id: docId,
       ownerId: ownerId,
       monsterId: template.id,
-      monster: template.copyWith(
-        ownerId: ownerId,
-        ownedInstanceId: docId,
-      ),
+      monster: template.copyWith(ownerId: ownerId, ownedInstanceId: docId),
       capturedAt: _parseCreatedAt(data['createdAt']),
     );
   }
@@ -195,13 +252,12 @@ class OwnedMonsterRepository {
   Map<String, dynamic> _newDocFields({
     required String ownerId,
     required Monster template,
-  }) =>
-      {
-        'ownerId': ownerId,
-        'monsterId': template.id,
-        'name': template.name,
-        'createdAt': FieldValue.serverTimestamp(),
-      };
+  }) => {
+    'ownerId': ownerId,
+    'monsterId': template.id,
+    'name': template.name,
+    'createdAt': FieldValue.serverTimestamp(),
+  };
 
   Monster? _resolveCatalog(List<Monster> catalog, String monsterId) {
     for (final m in catalog) {
@@ -216,4 +272,10 @@ class OwnedMonsterRepository {
     }
     return null;
   }
+}
+
+class InsufficientCoinsException implements Exception {
+  const InsufficientCoinsException({required this.requiredCoins});
+
+  final int requiredCoins;
 }

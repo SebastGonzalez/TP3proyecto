@@ -6,12 +6,11 @@ import 'package:prueba1/monsters/domain/gatcha_machine.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
 import 'package:prueba1/monsters/domain/roll_strategy.dart';
-import 'package:prueba1/presentation/providers/auth_provider.dart';
-import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/gatcha_machines_provider.dart';
+import 'package:prueba1/presentation/providers/gatcha_roll_controller_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
-import 'package:prueba1/presentation/providers/my_user.provider.dart';
+import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/widgets/coins_badge.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
@@ -98,45 +97,37 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
   Future<void> _onRoll(GatchaMachine machine) async {
     if (_rolling) return;
 
-    final ownerId = ref.read(myUserProvider).value?.uid ??
-        ref.read(userProvider).value?.uid;
-    if (ownerId == null) {
+    final controller = ref.read(gatchaRollControllerProvider);
+    final message = controller.validate(
+      machine: machine,
+      monsters: widget.monsters,
+      coins: widget.coins,
+    );
+    if (message != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Iniciá sesión para tirar la gatcha')),
-      );
-      return;
-    }
-
-    if (widget.coins < machine.cost) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Necesitás ${machine.cost} monedas!')),
-      );
-      return;
-    }
-    final eligible = machine.filteredPool(widget.monsters);
-    if (eligible.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No hay monstruos elegibles en esta máquina'),
-        ),
+        SnackBar(content: Text(message)),
       );
       return;
     }
 
     setState(() => _rolling = true);
-    ref.read(coinControllerProvider).update((c) => c - machine.cost);
-    // La pantalla no sabe cómo se rolea: delega en la máquina (`rollsPerPull`
-    // + `RollStrategy`). Cambiar la mecánica = cambiar la strategy o Firestore.
-    final won = machine.rollMany(widget.monsters, _rng);
-    final capture = ref.read(ownedMonstersControllerProvider);
-    final created = <Monster>[];
-    for (final catalogMonster in won) {
-      final instance = await capture.capture(catalogMonster);
-      if (instance != null) created.add(instance.monster);
-    }
+    final result = await controller.roll(
+      machine: machine,
+      monsters: widget.monsters,
+      coins: widget.coins,
+      rng: _rng,
+    );
 
     if (!mounted) return;
-    for (final monster in created) {
+    if (result.isFailure) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message!)),
+      );
+      setState(() => _rolling = false);
+      return;
+    }
+
+    for (final monster in result.created) {
       await showGatchaReveal(context, monster);
       if (!mounted) return;
     }

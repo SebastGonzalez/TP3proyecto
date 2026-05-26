@@ -1,9 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:prueba1/monsters/data/trade_repository.dart';
 import 'package:prueba1/monsters/domain/trade_request.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 
 final tradeRepositoryProvider = Provider((ref) => TradeRepository());
+
+final suppressedCompletedTradeRevealIdsProvider = StateProvider<Set<String>>(
+  (ref) => {},
+);
+
+String completedTradeRevealSuppressionKey(String userId, String tradeId) {
+  return '$userId:$tradeId';
+}
 
 /// Trades pendientes del usuario actual (creados por él).
 final myPendingTradesProvider = StreamProvider<List<TradeRequest>>((ref) {
@@ -26,10 +35,9 @@ final myWaitingTradesProvider = StreamProvider<List<TradeRequest>>((ref) {
   return ref.read(tradeRepositoryProvider).watchMyWaitingTrades(uid);
 });
 
-/// Trades completados que el user A todavía no vio (para reveal al reentrar).
-final unseenCompletedTradesProvider =
-    FutureProvider<List<TradeRequest>>((ref) async {
+/// Trades completados que el usuario actual todavía no vio.
+final unseenCompletedTradesProvider = StreamProvider<List<TradeRequest>>((ref) {
   final uid = ref.watch(userProvider).value?.uid;
-  if (uid == null) return [];
-  return ref.read(tradeRepositoryProvider).getUnseenCompletedTrades(uid);
+  if (uid == null) return Stream.value([]);
+  return ref.read(tradeRepositoryProvider).watchUnseenCompletedTrades(uid);
 });

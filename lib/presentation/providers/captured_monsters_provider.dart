@@ -3,10 +3,12 @@ import 'package:prueba1/core/domain/owned_monster.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
+import 'package:prueba1/presentation/providers/trade_controller_provider.dart';
 
 /// Colección del jugador con estado de carga/error (fuente: [ownedMonstersProvider]).
-final capturedMonstersAsyncProvider =
-    Provider<AsyncValue<List<OwnedMonster>>>((ref) {
+final capturedMonstersAsyncProvider = Provider<AsyncValue<List<OwnedMonster>>>((
+  ref,
+) {
   return ref.watch(ownedMonstersProvider);
 });
 
@@ -35,6 +37,9 @@ class CapturedMonstersNotifier extends Notifier<void> {
     if (companion != null && ids.contains(companion)) {
       await ref.read(homeCompanionProvider.notifier).clear();
     }
+    await ref
+        .read(tradeControllerProvider)
+        .cleanupActiveTradesForDeletedOwnedMonsters(ids);
     await ref.read(ownedMonstersControllerProvider).removeMany(ids);
   }
 
@@ -46,5 +51,5 @@ class CapturedMonstersNotifier extends Notifier<void> {
 
 final capturedMonstersActionsProvider =
     NotifierProvider<CapturedMonstersNotifier, void>(
-  CapturedMonstersNotifier.new,
-);
+      CapturedMonstersNotifier.new,
+    );

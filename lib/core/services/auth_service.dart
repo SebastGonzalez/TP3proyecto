@@ -104,10 +104,12 @@ class AuthService {
   /// Manejo de errores de Firebase Auth
   static String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
+      case 'invalid-credential':
+        return 'Usuario o contraseña incorrectos. Revisá tus datos e intentá de nuevo.';
       case 'user-not-found':
-        return 'Usuario no encontrado. Por favor regístrate.';
+        return 'Usuario o contraseña incorrectos. Revisá tus datos e intentá de nuevo.';
       case 'wrong-password':
-        return 'Contraseña incorrecta.';
+        return 'Usuario o contraseña incorrectos. Revisá tus datos e intentá de nuevo.';
       case 'email-already-in-use':
         return 'Este usuario ya existe.';
       case 'weak-password':

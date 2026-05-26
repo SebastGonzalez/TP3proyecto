@@ -1,9 +1,26 @@
 /// Perfil del jugador en Firestore (`users/{firebaseAuthUid}`).
+const defaultCharacterImagePath = 'assets/images/personaje.png';
+
+const availableCharacterImagePaths = [
+  defaultCharacterImagePath,
+  'assets/images/personaje2.png',
+  'assets/images/personaje3.png',
+  'assets/images/personaje4.png',
+];
+
+String resolveCharacterImagePath(String? imagePath) {
+  if (imagePath != null && availableCharacterImagePaths.contains(imagePath)) {
+    return imagePath;
+  }
+  return defaultCharacterImagePath;
+}
+
 class MyUser {
   const MyUser({
     required this.uid,
     required this.coins,
     this.username,
+    this.characterImagePath,
     this.homeCompanionId,
     this.homeCompanionImagePath,
     this.homeCompanionFacing,
@@ -17,6 +34,9 @@ class MyUser {
   final String uid;
   final int coins;
   final String? username;
+
+  /// Ruta de asset del personaje principal mostrado en Home.
+  final String? characterImagePath;
 
   /// Id de `owned_monsters/{id}` mostrado en la home.
   final String? homeCompanionId;
@@ -43,6 +63,7 @@ class MyUser {
     String? uid,
     int? coins,
     String? username,
+    String? characterImagePath,
     String? homeCompanionId,
     String? homeCompanionImagePath,
     String? homeCompanionFacing,
@@ -56,6 +77,7 @@ class MyUser {
       uid: uid ?? this.uid,
       coins: coins ?? this.coins,
       username: username ?? this.username,
+      characterImagePath: characterImagePath ?? this.characterImagePath,
       homeCompanionId: clearHomeCompanion
           ? null
           : (homeCompanionId ?? this.homeCompanionId),
@@ -70,8 +92,7 @@ class MyUser {
           : (homeCompanionScale ?? this.homeCompanionScale),
       homeCompanionBackgroundColor: clearHomeCompanion
           ? null
-          : (homeCompanionBackgroundColor ??
-              this.homeCompanionBackgroundColor),
+          : (homeCompanionBackgroundColor ?? this.homeCompanionBackgroundColor),
       completedSbcIds: completedSbcIds ?? this.completedSbcIds,
       createdAt: createdAt ?? this.createdAt,
     );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,7 +12,7 @@ import 'package:prueba1/monsters/domain/trade_request.dart';
 /// 3. User B acepta → transacción atómica swap de `ownerId`.
 class TradeRepository {
   TradeRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+    : _db = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _db;
   static const String collectionPath = 'trades';
@@ -143,20 +144,31 @@ class TradeRepository {
         throw StateError('El monstruo ofrecido ya no pertenece al creador');
       }
       if (toMonSnap.data()!['ownerId'] != toUserId) {
-        throw StateError('El monstruo propuesto ya no pertenece al otro jugador');
+        throw StateError(
+          'El monstruo propuesto ya no pertenece al otro jugador',
+        );
       }
 
       tx.update(fromMonRef, {'ownerId': toUserId});
       tx.update(toMonRef, {'ownerId': fromUserId});
 
-      final receivedMonsterId = toMonSnap.data()!['monsterId'] as String?;
-      final receivedMonsterName = toMonSnap.data()!['name'] as String?;
+      final fromReceivedMonsterId = toMonSnap.data()!['monsterId'] as String?;
+      final fromReceivedMonsterName = toMonSnap.data()!['name'] as String?;
+      final toReceivedMonsterId = fromMonSnap.data()!['monsterId'] as String?;
+      final toReceivedMonsterName = fromMonSnap.data()!['name'] as String?;
 
       tx.update(tradeRef, {
         'status': 'completed',
         'completedAt': FieldValue.serverTimestamp(),
-        'receivedMonsterId': receivedMonsterId,
-        'receivedMonsterName': receivedMonsterName,
+        'receivedMonsterId': fromReceivedMonsterId,
+        'receivedMonsterName': fromReceivedMonsterName,
+        'fromReceivedMonsterId': fromReceivedMonsterId,
+        'fromReceivedMonsterName': fromReceivedMonsterName,
+        'toReceivedMonsterId': toReceivedMonsterId,
+        'toReceivedMonsterName': toReceivedMonsterName,
+        'fromRevealSeen': true,
+        'toRevealSeen': false,
+        'seen': true,
       });
     });
   }
@@ -204,16 +216,82 @@ class TradeRepository {
     await ref.update({'status': 'cancelled'});
   }
 
+  /// Limpia trades activos que referencian monstruos eliminados.
+  ///
+  /// - Si el usuario creó el trade con ese monstruo, el trade se cancela.
+  /// - Si el usuario propuso ese monstruo en un trade ajeno, se retira la
+  ///   propuesta y el trade vuelve a `pending`.
+  Future<void> cleanupActiveTradesForDeletedOwnedMonsters({
+    required String userId,
+    required Iterable<String> ownedMonsterIds,
+  }) async {
+    final ids = ownedMonsterIds.where((id) => id.isNotEmpty).toSet();
+    if (ids.isEmpty) return;
+
+    for (final chunk in _chunks(ids, 10)) {
+      await _cancelCreatedTradesForDeletedOwnedIds(userId, chunk);
+      await _withdrawProposalsForDeletedOwnedIds(userId, chunk);
+    }
+  }
+
+  Future<void> _cancelCreatedTradesForDeletedOwnedIds(
+    String userId,
+    List<String> ownedIds,
+  ) async {
+    final snap = await _collection
+        .where('fromUserId', isEqualTo: userId)
+        .where('fromOwnedMonsterId', whereIn: ownedIds)
+        .get();
+
+    final batch = _db.batch();
+    var hasWrites = false;
+    for (final doc in snap.docs) {
+      final status = doc.data()['status'] as String?;
+      if (status != 'pending' && status != 'proposed') continue;
+      batch.update(doc.reference, {'status': 'cancelled'});
+      hasWrites = true;
+    }
+    if (hasWrites) await batch.commit();
+  }
+
+  Future<void> _withdrawProposalsForDeletedOwnedIds(
+    String userId,
+    List<String> ownedIds,
+  ) async {
+    final snap = await _collection
+        .where('toUserId', isEqualTo: userId)
+        .where('status', isEqualTo: 'proposed')
+        .where('toOwnedMonsterId', whereIn: ownedIds)
+        .get();
+
+    final batch = _db.batch();
+    var hasWrites = false;
+    for (final doc in snap.docs) {
+      batch.update(doc.reference, {
+        'status': 'pending',
+        'toUserId': FieldValue.delete(),
+        'toOwnedMonsterId': FieldValue.delete(),
+        'toMonsterName': FieldValue.delete(),
+        'toMonsterId': FieldValue.delete(),
+        'toMonsterImagePath': FieldValue.delete(),
+      });
+      hasWrites = true;
+    }
+    if (hasWrites) await batch.commit();
+  }
+
   /// Trades pendientes creados por [userId] (para la UI "esperando").
   Stream<List<TradeRequest>> watchMyPendingTrades(String userId) {
     return _collection
         .where('fromUserId', isEqualTo: userId)
         .where('status', isEqualTo: 'pending')
         .snapshots()
-        .map((snap) => [
-              for (final doc in snap.docs)
-                TradeRequest.fromFirestore(doc.id, doc.data()),
-            ]);
+        .map(
+          (snap) => [
+            for (final doc in snap.docs)
+              TradeRequest.fromFirestore(doc.id, doc.data()),
+          ],
+        );
   }
 
   /// Trades con propuesta recibida (User B ya eligió, esperan confirmación de User A).
@@ -222,10 +300,12 @@ class TradeRepository {
         .where('fromUserId', isEqualTo: userId)
         .where('status', isEqualTo: 'proposed')
         .snapshots()
-        .map((snap) => [
-              for (final doc in snap.docs)
-                TradeRequest.fromFirestore(doc.id, doc.data()),
-            ]);
+        .map(
+          (snap) => [
+            for (final doc in snap.docs)
+              TradeRequest.fromFirestore(doc.id, doc.data()),
+          ],
+        );
   }
 
   /// Trades donde User B propuso y espera respuesta de User A.
@@ -234,38 +314,120 @@ class TradeRepository {
         .where('toUserId', isEqualTo: userId)
         .where('status', isEqualTo: 'proposed')
         .snapshots()
-        .map((snap) => [
-              for (final doc in snap.docs)
-                TradeRequest.fromFirestore(doc.id, doc.data()),
-            ]);
+        .map(
+          (snap) => [
+            for (final doc in snap.docs)
+              TradeRequest.fromFirestore(doc.id, doc.data()),
+          ],
+        );
   }
 
   /// Trades completados donde [userId] fue creador y aún no vio el resultado.
   Future<List<TradeRequest>> getUnseenCompletedTrades(String userId) async {
-    final snap = await _collection
+    final fromSnap = await _collection
         .where('fromUserId', isEqualTo: userId)
         .where('status', isEqualTo: 'completed')
-        .where('seen', isEqualTo: false)
         .get();
-    if (snap.docs.isEmpty) {
-      final fallback = await _collection
-          .where('fromUserId', isEqualTo: userId)
-          .where('status', isEqualTo: 'completed')
-          .get();
-      return [
-        for (final doc in fallback.docs)
-          if (doc.data()['seen'] == null)
-            TradeRequest.fromFirestore(doc.id, doc.data()),
-      ];
+    final toSnap = await _collection
+        .where('toUserId', isEqualTo: userId)
+        .where('status', isEqualTo: 'completed')
+        .get();
+
+    final byId = <String, TradeRequest>{};
+    for (final doc in [...fromSnap.docs, ...toSnap.docs]) {
+      final trade = TradeRequest.fromFirestore(doc.id, doc.data());
+      if (!trade.revealSeenForUser(userId)) {
+        byId[trade.id] = trade;
+      }
     }
-    return [
-      for (final doc in snap.docs)
-        TradeRequest.fromFirestore(doc.id, doc.data()),
-    ];
+
+    final trades = byId.values.toList();
+    trades.sort((a, b) {
+      final aAt = a.completedAt ?? a.createdAt;
+      final bAt = b.completedAt ?? b.createdAt;
+      return aAt.compareTo(bAt);
+    });
+    return trades;
   }
 
-  /// Marca un trade como visto (User A ya vio el reveal).
-  Future<void> markSeen(String tradeId) async {
-    await _collection.doc(tradeId).update({'seen': true});
+  /// Trades completados sin reveal visto para cualquiera de los dos lados.
+  Stream<List<TradeRequest>> watchUnseenCompletedTrades(String userId) {
+    final controller = StreamController<List<TradeRequest>>();
+    List<QueryDocumentSnapshot<Map<String, dynamic>>>? fromDocs;
+    List<QueryDocumentSnapshot<Map<String, dynamic>>>? toDocs;
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? fromSub;
+    StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? toSub;
+
+    void emitIfReady() {
+      final from = fromDocs;
+      final to = toDocs;
+      if (from == null || to == null || controller.isClosed) return;
+
+      final byId = <String, TradeRequest>{};
+      for (final doc in [...from, ...to]) {
+        final trade = TradeRequest.fromFirestore(doc.id, doc.data());
+        if (!trade.revealSeenForUser(userId)) {
+          byId[trade.id] = trade;
+        }
+      }
+
+      final trades = byId.values.toList();
+      trades.sort((a, b) {
+        final aAt = a.completedAt ?? a.createdAt;
+        final bAt = b.completedAt ?? b.createdAt;
+        return aAt.compareTo(bAt);
+      });
+      controller.add(trades);
+    }
+
+    fromSub = _collection
+        .where('fromUserId', isEqualTo: userId)
+        .where('status', isEqualTo: 'completed')
+        .snapshots()
+        .listen((snap) {
+          fromDocs = snap.docs;
+          emitIfReady();
+        }, onError: controller.addError);
+
+    toSub = _collection
+        .where('toUserId', isEqualTo: userId)
+        .where('status', isEqualTo: 'completed')
+        .snapshots()
+        .listen((snap) {
+          toDocs = snap.docs;
+          emitIfReady();
+        }, onError: controller.addError);
+
+    controller.onCancel = () async {
+      await fromSub?.cancel();
+      await toSub?.cancel();
+    };
+
+    return controller.stream;
+  }
+
+  /// Marca un trade como visto para el usuario actual.
+  Future<void> markSeen(String tradeId, String userId) async {
+    final ref = _collection.doc(tradeId);
+    final snap = await ref.get();
+    if (!snap.exists) return;
+
+    final data = snap.data()!;
+    if (data['fromUserId'] == userId) {
+      await ref.update({'fromRevealSeen': true, 'seen': true});
+      return;
+    }
+
+    if (data['toUserId'] == userId) {
+      await ref.update({'toRevealSeen': true});
+    }
+  }
+
+  Iterable<List<String>> _chunks(Set<String> ids, int size) sync* {
+    final list = ids.toList();
+    for (var i = 0; i < list.length; i += size) {
+      final end = min(i + size, list.length);
+      yield list.sublist(i, end);
+    }
   }
 }
