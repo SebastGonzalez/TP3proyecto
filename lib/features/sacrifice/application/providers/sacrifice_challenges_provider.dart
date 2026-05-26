@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prueba1/monsters/data/sacrifice_repository.dart';
+import 'package:prueba1/features/sacrifice/data/repositories/sacrifice_repository.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/rarities_provider.dart';
 

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/monsters/domain/models/rarity.dart';
-import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
-import 'package:prueba1/monsters/domain/sacrifice_slot.dart';
+import 'package:prueba1/features/sacrifice/domain/models/sacrifice_challenge.dart';
+import 'package:prueba1/features/sacrifice/domain/models/sacrifice_slot.dart';
 
 /// Resultado de cargar SBC: lista usable + cuántos docs tenían `active: true`.
 class SacrificeChallengesState {

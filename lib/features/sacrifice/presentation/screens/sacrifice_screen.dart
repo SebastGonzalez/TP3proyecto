@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prueba1/monsters/data/sacrifice_repository.dart';
-import 'package:prueba1/monsters/domain/sacrifice_challenge.dart';
+import 'package:prueba1/features/sacrifice/data/repositories/sacrifice_repository.dart';
+import 'package:prueba1/features/sacrifice/domain/models/sacrifice_challenge.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
-import 'package:prueba1/presentation/providers/sacrifice_challenges_provider.dart';
+import 'package:prueba1/features/sacrifice/application/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
-import 'package:prueba1/presentation/providers/sacrifice_progress_provider.dart';
+import 'package:prueba1/features/sacrifice/application/providers/sacrifice_progress_provider.dart';
 import 'package:prueba1/features/monsters/presentation/widgets/monster_card_tile.dart';
 
 class SacrificeScreen extends ConsumerStatefulWidget {
