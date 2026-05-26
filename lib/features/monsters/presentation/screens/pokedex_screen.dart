@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 
 class PokedexScreen extends ConsumerStatefulWidget {
   const PokedexScreen({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // 2. Importamos tu provider de monedas

@@ -21,7 +21,7 @@ import 'package:prueba1/features/sacrifice/presentation/screens/sacrifice_challe
 import 'package:prueba1/features/sacrifice/presentation/screens/sacrifice_screen.dart';
 import 'package:prueba1/presentation/screens/settings_screen.dart';
 import 'package:prueba1/features/shop/presentation/screens/shop_screen.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 
 /// Notifica a GoRouter cuando cambia la sesión de Firebase Auth.
 class _AuthRefreshListenable extends ChangeNotifier {

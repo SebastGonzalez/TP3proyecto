@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
 import 'package:prueba1/features/shop/presentation/widgets/coins_badge.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 
 /// Paquete de monedas vendido en el mercado (precio solo demostración).
 class _CoinOffer {

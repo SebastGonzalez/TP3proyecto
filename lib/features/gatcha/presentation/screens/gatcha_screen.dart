@@ -12,7 +12,7 @@ import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
 import 'package:prueba1/features/shop/presentation/widgets/coins_badge.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/owned_monsters_provider.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
 
 class GatchaScreen extends ConsumerStatefulWidget {

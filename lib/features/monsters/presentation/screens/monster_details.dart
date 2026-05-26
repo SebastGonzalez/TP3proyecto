@@ -5,7 +5,7 @@ import 'package:prueba1/features/trades/domain/models/trade_request.dart';
 import 'package:prueba1/features/home/application/providers/home_companion_provider.dart';
 import 'package:prueba1/features/trades/application/providers/trade_provider.dart';
 import 'package:prueba1/features/trades/presentation/screens/market_screen.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 
 class MonsterDetails extends ConsumerWidget {
   const MonsterDetails({super.key, required this.monster});

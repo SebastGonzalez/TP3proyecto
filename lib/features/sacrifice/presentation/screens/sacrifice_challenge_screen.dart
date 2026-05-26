@@ -6,7 +6,7 @@ import 'package:prueba1/features/sacrifice/domain/models/sacrifice_challenge.dar
 import 'package:prueba1/features/sacrifice/domain/models/sacrifice_slot.dart';
 import 'package:prueba1/features/monsters/application/providers/captured_monsters_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/owned_monsters_provider.dart';
-import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
+import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/features/sacrifice/application/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/features/sacrifice/application/providers/sacrifice_progress_provider.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
