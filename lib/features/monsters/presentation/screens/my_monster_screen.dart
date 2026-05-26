@@ -6,7 +6,7 @@ import 'package:prueba1/features/monsters/application/providers/captured_monster
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/features/monsters/presentation/widgets/monster_card_tile.dart';
 import 'package:prueba1/features/monsters/presentation/widgets/monster_collection_skeleton.dart';
-import 'package:prueba1/presentation/providers/home_companion_provider.dart';
+import 'package:prueba1/features/home/application/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 
 class MyMonsterScreen extends ConsumerStatefulWidget {

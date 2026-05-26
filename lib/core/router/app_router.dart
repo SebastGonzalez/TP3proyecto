@@ -11,7 +11,7 @@ import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/sacrifice/domain/models/sacrifice_challenge.dart';
 import 'package:prueba1/features/gatcha/presentation/screens/gatcha_screen.dart';
 import 'package:prueba1/presentation/screens/game_screen.dart';
-import 'package:prueba1/presentation/screens/home_screen.dart';
+import 'package:prueba1/features/home/presentation/screens/home_screen.dart';
 import 'package:prueba1/features/trades/presentation/screens/market_screen.dart';
 import 'package:prueba1/features/monsters/presentation/screens/monster_details.dart';
 import 'package:prueba1/features/monsters/presentation/screens/my_monster_screen.dart';

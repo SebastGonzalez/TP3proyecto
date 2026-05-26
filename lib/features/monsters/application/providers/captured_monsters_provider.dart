@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/features/monsters/domain/models/owned_monster.dart';
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
-import 'package:prueba1/presentation/providers/home_companion_provider.dart';
+import 'package:prueba1/features/home/application/providers/home_companion_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/owned_monsters_provider.dart';
 import 'package:prueba1/features/trades/application/controllers/trade_controller_provider.dart';
 

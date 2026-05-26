@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:prueba1/core/menu/menu_item.dart';
 import 'package:prueba1/features/auth/application/controllers/auth_controller_provider.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
-import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
+import 'package:prueba1/features/home/application/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/default_user_avatar.dart';
 
 /// Menú lateral de la app: perfil + secciones + cerrar sesión.
