@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prueba1/features/monsters/data/repositories/owned_monster_repository.dart';
 import 'package:prueba1/features/gatcha/domain/gatcha_machine.dart';
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
-import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
 import 'package:prueba1/core/application/providers/my_user.provider.dart';
 import 'package:prueba1/features/monsters/application/providers/owned_monsters_provider.dart';
 
@@ -22,9 +21,7 @@ class GatchaRollController {
     required List<Monster> monsters,
     required int coins,
   }) {
-    final ownerId =
-        _ref.read(myUserProvider).value?.uid ??
-        _ref.read(userProvider).value?.uid;
+    final ownerId = _ref.read(myUserProvider).value?.uid;
     if (ownerId == null) {
       return 'Iniciá sesión para tirar la gatcha';
     }
