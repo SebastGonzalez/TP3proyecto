@@ -3,7 +3,7 @@ import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // 2. Importamos tu provider de monedas
-import 'package:prueba1/presentation/providers/coin_provider.dart';
+import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});

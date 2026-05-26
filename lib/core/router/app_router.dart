@@ -20,7 +20,7 @@ import 'package:prueba1/features/profile/presentation/screens/profile_screen.dar
 import 'package:prueba1/presentation/screens/sacrifice_challenge_screen.dart';
 import 'package:prueba1/presentation/screens/sacrifice_screen.dart';
 import 'package:prueba1/presentation/screens/settings_screen.dart';
-import 'package:prueba1/presentation/screens/shop_screen.dart';
+import 'package:prueba1/features/shop/presentation/screens/shop_screen.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
 
 /// Notifica a GoRouter cuando cambia la sesión de Firebase Auth.

@@ -4,7 +4,7 @@ import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
 import 'package:prueba1/features/auth/application/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/captured_monsters_provider.dart';
-import 'package:prueba1/presentation/providers/coin_provider.dart';
+import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
 import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/rarities_provider.dart';

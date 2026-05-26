@@ -6,13 +6,13 @@ import 'package:prueba1/monsters/domain/gatcha_machine.dart';
 import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/monsters/domain/rarity.dart';
 import 'package:prueba1/monsters/domain/roll_strategy.dart';
-import 'package:prueba1/presentation/providers/coin_provider.dart';
+import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
+import 'package:prueba1/features/shop/presentation/widgets/coins_badge.dart';
 import 'package:prueba1/presentation/providers/gatcha_machines_provider.dart';
 import 'package:prueba1/presentation/providers/gatcha_roll_controller_provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 import 'package:prueba1/presentation/widgets/app_page_app_bar.dart';
-import 'package:prueba1/presentation/widgets/coins_badge.dart';
 import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
 
 class GatchaScreen extends ConsumerStatefulWidget {
