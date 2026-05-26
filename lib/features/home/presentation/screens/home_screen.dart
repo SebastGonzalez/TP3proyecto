@@ -13,7 +13,7 @@ import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/features/trades/application/controllers/trade_controller_provider.dart';
 import 'package:prueba1/features/trades/application/providers/trade_provider.dart';
-import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
+import 'package:prueba1/shared/presentation/widgets/gatcha_reveal.dart';
 
 /// Cuánto se corre el personaje a la derecha si hay compañero (fracción del ancho del PJ).
 const _kHomeShiftWithCompanionFactor = 0.08;

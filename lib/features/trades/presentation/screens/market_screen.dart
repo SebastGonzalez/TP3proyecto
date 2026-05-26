@@ -10,7 +10,7 @@ import 'package:prueba1/features/monsters/application/providers/owned_monsters_p
 import 'package:prueba1/features/trades/application/controllers/trade_controller_provider.dart';
 import 'package:prueba1/features/trades/application/providers/trade_provider.dart';
 import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
-import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
+import 'package:prueba1/shared/presentation/widgets/gatcha_reveal.dart';
 
 class MarketScreen extends ConsumerStatefulWidget {
   const MarketScreen({super.key});

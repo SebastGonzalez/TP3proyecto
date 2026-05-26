@@ -9,7 +9,7 @@ import 'package:prueba1/features/monsters/application/providers/owned_monsters_p
 import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/features/sacrifice/application/providers/sacrifice_challenges_provider.dart';
 import 'package:prueba1/features/sacrifice/application/providers/sacrifice_progress_provider.dart';
-import 'package:prueba1/presentation/widgets/gatcha_reveal.dart';
+import 'package:prueba1/shared/presentation/widgets/gatcha_reveal.dart';
 import 'package:prueba1/features/monsters/presentation/widgets/monster_card_tile.dart';
 
 class SacrificeChallengeScreen extends ConsumerStatefulWidget {
