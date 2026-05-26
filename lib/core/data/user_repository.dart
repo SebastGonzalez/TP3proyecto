@@ -14,7 +14,7 @@ import 'package:prueba1/core/domain/my_user.dart';
 /// Los monstruos capturados viven en `owned_monsters` (ver [OwnedMonsterRepository]).
 class UserRepository {
   UserRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+    : _db = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _db;
 
@@ -85,10 +85,19 @@ class UserRepository {
   }
 
   Future<void> saveCoins(String uid, int coins) async {
-    await _doc(uid).update({
-      'coins': coins,
+    await _doc(
+      uid,
+    ).update({'coins': coins, 'updatedAt': FieldValue.serverTimestamp()});
+  }
+
+  Future<void> saveCharacterImagePath(String uid, String imagePath) async {
+    if (!availableCharacterImagePaths.contains(imagePath)) {
+      throw ArgumentError('Personaje no válido');
+    }
+    await _doc(uid).set({
+      'characterImagePath': imagePath,
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 
   /// Compañero en la home: id + snapshot visual para el primer frame sin esperar catálogo.
@@ -139,8 +148,7 @@ class UserRepository {
     await _doc(user.uid).set({
       if (user.username != null) 'username': user.username,
       'coins': user.coins,
-      if (user.homeCompanionId != null)
-        'homeCompanionId': user.homeCompanionId,
+      if (user.homeCompanionId != null) 'homeCompanionId': user.homeCompanionId,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -148,6 +156,7 @@ class UserRepository {
   MyUser? _parseDoc(String uid, Map<String, dynamic> data) {
     final coins = (data['coins'] as num?)?.toInt() ?? defaultCoins;
     final username = data['username'] as String?;
+    final characterImagePath = data['characterImagePath'] as String?;
     final homeCompanionId = data['homeCompanionId'] as String?;
     final homeCompanionImagePath = data['homeCompanionImagePath'] as String?;
     final homeCompanionFacing = data['homeCompanionFacing'] as String?;
@@ -159,6 +168,7 @@ class UserRepository {
       uid: uid,
       coins: coins,
       username: username,
+      characterImagePath: resolveCharacterImagePath(characterImagePath),
       homeCompanionId: homeCompanionId,
       homeCompanionImagePath: homeCompanionImagePath,
       homeCompanionFacing: homeCompanionFacing,

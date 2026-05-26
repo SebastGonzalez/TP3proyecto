@@ -8,8 +8,9 @@ import 'package:prueba1/presentation/providers/owned_monsters_provider.dart';
 final userRepositoryProvider = Provider((ref) => UserRepository());
 
 /// Perfil del jugador logueado (Firestore `users/{uid}`). Monedas: [coinProvider].
-final myUserProvider =
-    AsyncNotifierProvider<MyUserNotifier, MyUser?>(MyUserNotifier.new);
+final myUserProvider = AsyncNotifierProvider<MyUserNotifier, MyUser?>(
+  MyUserNotifier.new,
+);
 
 class MyUserNotifier extends AsyncNotifier<MyUser?> {
   @override
@@ -47,10 +48,9 @@ class MyUserNotifier extends AsyncNotifier<MyUser?> {
   Future<void> updateCoins(int Function(int current) updater) async {
     final current = state.value;
     if (current == null) return;
-    await ref.read(userRepositoryProvider).saveCoins(
-          current.uid,
-          updater(current.coins),
-        );
+    await ref
+        .read(userRepositoryProvider)
+        .saveCoins(current.uid, updater(current.coins));
   }
 
   Future<void> setCoins(int coins) async {
@@ -73,5 +73,14 @@ class MyUserNotifier extends AsyncNotifier<MyUser?> {
     await ref.read(userRepositoryProvider).saveUsername(current.uid, trimmed);
     await AuthService.updateDisplayName(trimmed);
     ref.read(loggedInUsernameProvider.notifier).state = trimmed;
+  }
+
+  Future<void> updateCharacterImagePath(String imagePath) async {
+    final current = state.value;
+    if (current == null) return;
+
+    await ref
+        .read(userRepositoryProvider)
+        .saveCharacterImagePath(current.uid, imagePath);
   }
 }

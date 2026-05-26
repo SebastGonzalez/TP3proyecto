@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prueba1/core/domain/my_user.dart';
 import 'package:prueba1/monsters/domain/trade_request.dart';
 import 'package:prueba1/presentation/providers/auth_provider.dart';
 import 'package:prueba1/presentation/providers/coin_provider.dart';
@@ -7,6 +8,7 @@ import 'package:prueba1/monsters/domain/monster.dart';
 import 'package:prueba1/presentation/providers/home_companion_provider.dart';
 import 'package:prueba1/presentation/providers/drawer_navigation_provider.dart';
 import 'package:prueba1/presentation/widgets/app_drawer.dart';
+import 'package:prueba1/presentation/providers/my_user.provider.dart';
 import 'package:prueba1/presentation/providers/mymonster_provider.dart';
 import 'package:prueba1/presentation/providers/trade_controller_provider.dart';
 import 'package:prueba1/presentation/providers/trade_provider.dart';
@@ -131,6 +133,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(authUsernameBootstrapProvider);
     final coins = ref.watch(coinProvider);
     final username = ref.watch(currentUsernameProvider);
+    final characterImagePath = resolveCharacterImagePath(
+      ref.watch(myUserProvider).value?.characterImagePath,
+    );
     final companion = ref.watch(homeCompanionViewProvider);
     final companionTint = companion?.backgroundColor;
 
@@ -171,6 +176,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: _CharacterHub(
                           username: username,
+                          characterImagePath: characterImagePath,
                           compact: compact,
                           maxImageHeight: constraints.maxHeight * 0.48,
                         ),
@@ -225,11 +231,13 @@ class _HomeTopBar extends StatelessWidget {
 class _CharacterHub extends ConsumerWidget {
   const _CharacterHub({
     required this.username,
+    required this.characterImagePath,
     required this.compact,
     required this.maxImageHeight,
   });
 
   final String username;
+  final String characterImagePath;
   final bool compact;
   final double maxImageHeight;
 
@@ -275,7 +283,7 @@ class _CharacterHub extends ConsumerWidget {
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Image.asset(
-                            'assets/images/personaje.png',
+                            characterImagePath,
                             width: imageWidth,
                             fit: BoxFit.contain,
                             filterQuality: FilterQuality.medium,
