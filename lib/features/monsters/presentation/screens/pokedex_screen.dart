@@ -22,7 +22,7 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+   Widget build(BuildContext context) {
     final monstersAsync = ref.watch(monstersProvider);
 
     return Scaffold(
@@ -30,7 +30,15 @@ class _PokedexScreenState extends ConsumerState<PokedexScreen> {
       body: monstersAsync.when(
         loading: () => Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
-        data: (monsters) => _ListView(monsters: monsters),
+        data: (monsters) {
+        // 1. Creamos una copia de la lista para evitar problemas de inmutabilidad
+        // 2. La ordenamos por el nivel de menor a mayor
+          final sortedMonsters = [...monsters]
+            ..sort((a, b) => a.level.compareTo(b.level));
+        // Si preferís que vayan del nivel más alto al más bajo, usás:
+        // ..sort((a, b) => b.level.compareTo(a.level));
+          return _ListView(monsters: sortedMonsters);
+      },
       ),
     );
   }
