@@ -1,17 +1,21 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:prueba1/features/gatcha/application/controllers/gatcha_roll_controller_provider.dart';
 import 'package:prueba1/features/gatcha/application/providers/gatcha_machines_provider.dart';
 import 'package:prueba1/features/gatcha/domain/gatcha_machine.dart';
 import 'package:prueba1/features/gatcha/domain/roll_strategy.dart';
+
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/monsters/domain/models/rarity.dart';
+
 import 'package:prueba1/features/shop/application/providers/coin_provider.dart';
 import 'package:prueba1/features/shop/presentation/widgets/coins_badge.dart';
+
 import 'package:prueba1/features/monsters/application/providers/mymonster_provider.dart';
 import 'package:prueba1/features/monsters/application/providers/owned_monsters_provider.dart';
+
 import 'package:prueba1/shared/presentation/widgets/app_page_app_bar.dart';
 import 'package:prueba1/shared/presentation/widgets/gatcha_reveal.dart';
 
@@ -159,6 +163,7 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
             const SizedBox(height: 12),
             CoinsBadge(coins: widget.coins),
             const SizedBox(height: 8),
+
             Expanded(
               child: PageView.builder(
                 controller: _pageCtrl,
@@ -186,12 +191,14 @@ class _GatchaBodyState extends ConsumerState<_GatchaBody>
                 },
               ),
             ),
+
             _PageDots(
               count: machines.length,
               current: safeIndex,
               activeColor: machine.haloColor,
             ),
             const SizedBox(height: 14),
+            
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: SizedBox(

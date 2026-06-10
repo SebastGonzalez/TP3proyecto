@@ -1,9 +1,10 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+
 import 'package:prueba1/features/gatcha/domain/gatcha_drop_config.dart';
 import 'package:prueba1/features/gatcha/domain/roll_strategy.dart';
 import 'package:prueba1/features/gatcha/domain/strategies/tiered_gatcha_strategy.dart';
+
 import 'package:prueba1/features/monsters/domain/models/monster.dart';
 import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
@@ -60,6 +61,7 @@ class GatchaMachine {
     );
   }
 
+  //es 1
   static int _parseRollsPerPull(dynamic raw) {
     final n = (raw as num?)?.toInt() ?? 1;
     return n.clamp(1, 10);

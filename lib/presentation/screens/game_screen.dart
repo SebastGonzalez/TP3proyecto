@@ -160,7 +160,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildStatBox("Ronda actual", "$currentScore 🪙"),
-                _buildStatBox("Total acumulado", "$totalCoins 💰"),
+                //_buildStatBox("Total acumulado", "$totalCoins 💰"),
               ],
             ),
           ),

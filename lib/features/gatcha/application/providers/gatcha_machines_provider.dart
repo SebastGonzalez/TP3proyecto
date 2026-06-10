@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:prueba1/features/gatcha/data/repositories/gatcha_machine_repository.dart';
 import 'package:prueba1/features/gatcha/domain/gatcha_machine.dart';
+
 import 'package:prueba1/features/monsters/application/providers/rarities_provider.dart';
 
 final gatchaMachineRepositoryProvider = Provider<GatchaMachineRepository>(

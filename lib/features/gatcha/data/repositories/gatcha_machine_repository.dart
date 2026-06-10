@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:prueba1/features/gatcha/domain/gatcha_machine.dart';
+
 import 'package:prueba1/features/monsters/domain/models/rarity.dart';
 
 /// Lee máquinas gacha desde Firestore.
